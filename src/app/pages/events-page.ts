@@ -56,7 +56,7 @@ import { RouterLink } from '@angular/router';
     .card-cta { margin-top:1rem }
     .btn { background:rgba(0,0,0,0.12); color:white; padding:0.5rem 0.75rem; border-radius:8px; text-decoration:none }
 
-    @media (max-width:600px){ .topbar{padding:0.75rem 1rem} .grid-wrap{padding:1rem} }
+    @media (max-width:600px){ .topbar{padding:0.75rem 1rem} .grid-wrap{padding:1rem}  }
   `]
 })
 export class EventsPage {

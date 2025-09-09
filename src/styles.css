@@ -5,3 +5,22 @@
   box-sizing: border-box;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+
+html {
+  height: 100vh;
+  width: 100vw;
+}
+
+body{
+  height: 100vh;
+  width: 100vw;
+  background: #f3f4f6;
+}
+
+@media screen and (max-width: 600px) {
+  body,html{
+    height: 100vh;
+    width: 100vw;
+  }
+
+}
