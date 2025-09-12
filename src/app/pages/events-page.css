@@ -1,16 +1,16 @@
-.events-root{width: 100%; height: 100%; overflow-x: hidden;}
+.events-root{width: 100%; height: 100%;  overflow-x: hidden;}
 :host { display:block; font-family: Inter, system-ui, Arial; }
-.topbar { display:flex; align-items:center; gap:1rem; padding:1rem 2rem; background:linear-gradient(90deg,#6b2bd8,#ff6b6b); color:white; }
+.topbar { display:flex; align-items:center; gap:1rem; padding:1rem 16.3rem; background:linear-gradient(90deg,#6b2bd8,#ff6b6b); color:white; max-width: 100%; overflow-x: hidden; }
 .brand { background:#0ea5a4; padding:0.4rem 0.75rem; border-radius:8px; font-weight:700 }
-.nav { display:flex; gap:1rem; margin-left:1rem }
-.nav a { color:rgba(255,255,255,0.9); text-decoration:none }
+.nav { display:flex; gap:1rem; margin-left:1rem ; gap:10rem; justify-content: center;  width: 100%;}
+.nav a { color:rgba(255,255,255,0.9); justify-content: center; text-decoration:none; justify-content: space-around; }
 .nav a.active { font-weight:700 }
-.search { margin-left:auto }
-.search input { padding:0.5rem 0.75rem; border-radius:999px; border:0 }
+.search {  }
+.search input { width: 100%;padding:0.5rem 0.75rem; border-radius:999px; border:0 }
 
 .grid-wrap { padding:2rem; background: linear-gradient(180deg,#f3e8ff, #fef3c7); min-height: calc(100vh - 72px); }
-.grid { display:grid; grid-auto-rows: 500px; grid-template-columns: repeat(auto-fill,minmax(500px, 1fr)); gap:1.25rem; max-width:1200px; margin:0 auto }
-.card { color:white; padding:1.25rem; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; min-height:220px }
+.grid { display:grid; grid-auto-rows: 700px; grid-template-columns: repeat(auto-fill,minmax(40rem, 1fr)); gap:1.25rem; max-width:75%; margin:0 auto; padding: 1rem; }
+.card { color:white; padding:1.25rem; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; min-height:220px; }
 .card-top { }
 .card-tag { opacity:0.9; font-size:0.8rem }
 .card-title { margin:0.5rem 0; font-size:1.5rem }
@@ -19,4 +19,4 @@
 .card-cta { margin-top:1rem }
 .btn { background:rgba(0,0,0,0.12); color:white; padding:0.5rem 0.75rem; border-radius:8px; text-decoration:none }
 
-@media (max-width:600px){ .topbar{padding:0.75rem 1rem} .grid-wrap{padding:1rem} }
+@media (max-width:600px){ .nav{display: none;} .topbar{padding:0.75rem 1rem} .grid-wrap{padding:1rem} .grid { display:grid; grid-auto-rows: 50vh; grid-template-columns: repeat(auto-fill,minmax(20rem, 1fr)); gap:1.25rem; max-width:100%; margin:0 auto } }
