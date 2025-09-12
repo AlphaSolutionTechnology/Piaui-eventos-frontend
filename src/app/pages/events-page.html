@@ -1,0 +1,27 @@
+<div class="events-root">
+  <header class="topbar">
+    <div class="brand">Events</div>
+    <nav class="nav">
+      <a routerLink="/events" class="active">Events</a>
+      <a href="#">Categories</a>
+      <a href="#">Venues</a>
+    </nav>
+    <div class="search"><input placeholder="Search" /></div>
+  </header>
+
+  <main class="grid-wrap">
+    <section class="grid">
+      <article *ngFor="let c of cards" class="card" [style.background]="c.bg">
+        <div class="card-top">
+          <div class="card-tag">{{ c.tag }}</div>
+          <h3 class="card-title">{{ c.title }}</h3>
+          <div class="card-time">{{ c.time }}</div>
+          <p class="card-desc">{{ c.desc }}</p>
+        </div>
+        <div class="card-cta">
+          <a class="btn">View Details</a>
+        </div>
+      </article>
+    </section>
+  </main>
+</div>
