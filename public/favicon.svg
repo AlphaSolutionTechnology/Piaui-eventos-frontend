@@ -7,25 +7,25 @@
       <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
     </linearGradient>
   </defs>
-  
+
   <!-- Background circle -->
   <circle cx="16" cy="16" r="15" fill="url(#faviconGradient)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-  
+
   <!-- Letter E stylized -->
   <g fill="white" stroke="none">
     <!-- Main vertical line -->
     <rect x="8" y="8" width="2.5" height="16" rx="1"/>
-    
+
     <!-- Top horizontal line -->
     <rect x="8" y="8" width="12" height="2.5" rx="1"/>
-    
+
     <!-- Middle horizontal line -->
     <rect x="8" y="14.75" width="9" height="2.5" rx="1"/>
-    
+
     <!-- Bottom horizontal line -->
     <rect x="8" y="21.5" width="12" height="2.5" rx="1"/>
   </g>
-  
+
   <!-- Decorative dots representing events -->
   <circle cx="24" cy="10" r="1.5" fill="rgba(255,255,255,0.9)"/>
   <circle cx="26" cy="15" r="1" fill="rgba(255,255,255,0.7)"/>

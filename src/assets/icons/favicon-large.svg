@@ -10,25 +10,25 @@
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.1)"/>
     </filter>
   </defs>
-  
+
   <!-- Background circle -->
   <circle cx="32" cy="32" r="30" fill="url(#faviconGradientLarge)" filter="url(#shadow)"/>
-  
+
   <!-- Letter E stylized -->
   <g fill="white" stroke="none">
     <!-- Main vertical line -->
     <rect x="16" y="16" width="5" height="32" rx="2"/>
-    
+
     <!-- Top horizontal line -->
     <rect x="16" y="16" width="24" height="5" rx="2"/>
-    
+
     <!-- Middle horizontal line -->
     <rect x="16" y="29.5" width="18" height="5" rx="2"/>
-    
+
     <!-- Bottom horizontal line -->
     <rect x="16" y="43" width="24" height="5" rx="2"/>
   </g>
-  
+
   <!-- Decorative dots representing events -->
   <circle cx="48" cy="20" r="3" fill="rgba(255,255,255,0.9)">
     <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />

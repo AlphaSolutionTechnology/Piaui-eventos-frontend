@@ -3,22 +3,39 @@
   <header class="topbar">
     <div class="brand-logo">
       <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
-        <circle cx="20" cy="20" r="18" fill="url(#bgGradient)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-        <path d="M12 12h12M12 16h8M12 20h12M12 24h10M12 28h12" stroke="rgba(255,255,255,0.9)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle
+          cx="20"
+          cy="20"
+          r="18"
+          fill="url(#bgGradient)"
+          stroke="rgba(255,255,255,0.2)"
+          stroke-width="1"
+        />
+        <path
+          d="M12 12h12M12 16h8M12 20h12M12 24h10M12 28h12"
+          stroke="rgba(255,255,255,0.9)"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        />
         <circle cx="30" cy="12" r="2" fill="rgba(255,255,255,0.8)">
-          <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite" />
         </circle>
         <circle cx="32" cy="18" r="1.5" fill="rgba(255,255,255,0.6)">
-          <animate attributeName="opacity" values="0.6;0.9;0.6" dur="2.5s" repeatCount="indefinite"/>
+          <animate
+            attributeName="opacity"
+            values="0.6;0.9;0.6"
+            dur="2.5s"
+            repeatCount="indefinite"
+          />
         </circle>
         <circle cx="30" cy="24" r="1.8" fill="rgba(255,255,255,0.7)">
-          <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" />
         </circle>
         <defs>
           <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.8" />
-            <stop offset="50%" style="stop-color:#764ba2;stop-opacity:0.9" />
-            <stop offset="100%" style="stop-color:#f093fb;stop-opacity:0.7" />
+            <stop offset="0%" style="stop-color: #667eea; stop-opacity: 0.8" />
+            <stop offset="50%" style="stop-color: #764ba2; stop-opacity: 0.9" />
+            <stop offset="100%" style="stop-color: #f093fb; stop-opacity: 0.7" />
           </linearGradient>
         </defs>
       </svg>
@@ -34,17 +51,25 @@
     <div class="header-actions">
       <button class="action-btn" (click)="shareEvent()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M18 8a4 4 0 0 0-4-4c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4z" stroke="currentColor" stroke-width="2"/>
-          <path d="M14 12l-8 4" stroke="currentColor" stroke-width="2"/>
-          <path d="M14 8l-8-4" stroke="currentColor" stroke-width="2"/>
-          <circle cx="6" cy="4" r="3" stroke="currentColor" stroke-width="2"/>
-          <circle cx="6" cy="20" r="3" stroke="currentColor" stroke-width="2"/>
+          <path
+            d="M18 8a4 4 0 0 0-4-4c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4z"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <path d="M14 12l-8 4" stroke="currentColor" stroke-width="2" />
+          <path d="M14 8l-8-4" stroke="currentColor" stroke-width="2" />
+          <circle cx="6" cy="4" r="3" stroke="currentColor" stroke-width="2" />
+          <circle cx="6" cy="20" r="3" stroke="currentColor" stroke-width="2" />
         </svg>
         Share
       </button>
       <button class="action-btn" (click)="toggleFavorite()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="currentColor" stroke-width="2"/>
+          <path
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            stroke="currentColor"
+            stroke-width="2"
+          />
         </svg>
         Save
       </button>
@@ -66,25 +91,33 @@
           <div class="event-quick-info">
             <div class="info-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2" />
               </svg>
               <span>{{ event.time }} - {{ event.date }}</span>
             </div>
 
             <div class="info-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2"/>
-                <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                <path
+                  d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" />
               </svg>
               <span>{{ event.location }}</span>
             </div>
 
             <div class="info-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                <path d="M20 8v6M23 11l-3 3-3-3" stroke="currentColor" stroke-width="2"/>
+                <path
+                  d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" />
+                <path d="M20 8v6M23 11l-3 3-3-3" stroke="currentColor" stroke-width="2" />
               </svg>
               <span>{{ event.registered }}/{{ event.capacity }} inscritos</span>
             </div>
@@ -112,13 +145,17 @@
                 <h3>Características do Evento</h3>
                 <ul>
                   @for (feature of event.features; track feature) {
-                    <li>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <polyline points="9,11 12,14 22,4" stroke="currentColor" stroke-width="2"/>
-                        <path d="M21,12v7a2,2 0 0,1 -2,2H5a2,2 0 0,1 -2,-2V5a2,2 0 0,1 2,-2h11" stroke="currentColor" stroke-width="2"/>
-                      </svg>
-                      {{ feature }}
-                    </li>
+                  <li>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <polyline points="9,11 12,14 22,4" stroke="currentColor" stroke-width="2" />
+                      <path
+                        d="M21,12v7a2,2 0 0,1 -2,2H5a2,2 0 0,1 -2,-2V5a2,2 0 0,1 2,-2h11"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                    </svg>
+                    {{ feature }}
+                  </li>
                   }
                 </ul>
               </div>
@@ -127,7 +164,7 @@
                 <h3>Artistas Confirmados</h3>
                 <div class="artists-grid">
                   @for (artist of event.artists; track artist) {
-                    <div class="artist-tag">{{ artist }}</div>
+                  <div class="artist-tag">{{ artist }}</div>
                   }
                 </div>
               </div>
@@ -144,7 +181,10 @@
 
               <div class="availability">
                 <div class="availability-bar">
-                  <div class="availability-fill" [style.width.%]="(event.registered / event.capacity) * 100"></div>
+                  <div
+                    class="availability-fill"
+                    [style.width.%]="(event.registered / event.capacity) * 100"
+                  ></div>
                 </div>
                 <span class="availability-text">
                   {{ event.capacity - event.registered }} vagas restantes
@@ -153,15 +193,23 @@
 
               <a [routerLink]="['/event', event.id, 'register']" class="register-btn primary">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                  <path
+                    d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" />
                 </svg>
                 Inscrever-se no Evento
               </a>
 
               <button class="register-btn secondary">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2"/>
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
                 </svg>
                 Adicionar à Lista de Desejos
               </button>
@@ -172,8 +220,12 @@
               <div class="organizer-info">
                 <div class="organizer-avatar">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    <path
+                      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" />
                   </svg>
                 </div>
                 <div class="organizer-details">
@@ -183,8 +235,12 @@
               </div>
               <button class="contact-organizer-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2"/>
-                  <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2"/>
+                  <path
+                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" />
                 </svg>
                 Contatar Organizador
               </button>

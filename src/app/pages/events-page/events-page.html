@@ -47,9 +47,7 @@
       </svg>
       <span class="brand-text text-brand">EventHub</span>
     </div>
-    <nav class="nav">
-
-    </nav>
+    <nav class="nav"></nav>
     <div class="user-avatar" (click)="toggleUserDropdown()">
       <div class="avatar-container">
         @if (user.avatar) {
@@ -165,7 +163,10 @@
             />
           </svg>
           Filtrar Eventos
-          <span class="active-filters-badge text-badge" *ngIf="hasActiveFilters() && !isFiltersOpen">
+          <span
+            class="active-filters-badge text-badge"
+            *ngIf="hasActiveFilters() && !isFiltersOpen"
+          >
             {{ getActiveFiltersCount() }}
           </span>
         </h4>
@@ -223,7 +224,7 @@
             >
               <option value="">Todos os tipos</option>
               @for (type of eventTypes; track type) {
-                <option [value]="type">{{ type }}</option>
+              <option [value]="type">{{ type }}</option>
               }
             </select>
           </div>
@@ -251,9 +252,9 @@
         <!-- Contador de Resultados -->
         <div class="results-counter">
           @if (isLoading) {
-            <span class="loading-text">Carregando eventos...</span>
+          <span class="loading-text">Carregando eventos...</span>
           } @else {
-            <span>Exibindo {{ filteredEvents.length }} de {{ totalEvents }} eventos</span>
+          <span>Exibindo {{ filteredEvents.length }} de {{ totalEvents }} eventos</span>
           }
         </div>
       </div>
