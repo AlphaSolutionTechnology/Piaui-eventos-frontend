@@ -1,0 +1,352 @@
+<div class="events-root">
+  <header class="topbar">
+    <div class="brand-logo">
+      <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
+        <!-- Background circle com gradiente -->
+        <circle
+          cx="20"
+          cy="20"
+          r="18"
+          fill="url(#bgGradient)"
+          stroke="rgba(255,255,255,0.2)"
+          stroke-width="1"
+        />
+
+        <!-- Ícone principal: E estilizado -->
+        <path
+          d="M12 12h12M12 16h8M12 20h12M12 24h10M12 28h12"
+          stroke="rgba(255,255,255,0.9)"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        />
+
+        <!-- Decoração: pontos que representam eventos -->
+        <circle cx="30" cy="12" r="2" fill="rgba(255,255,255,0.8)">
+          <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="32" cy="18" r="1.5" fill="rgba(255,255,255,0.6)">
+          <animate
+            attributeName="opacity"
+            values="0.6;0.9;0.6"
+            dur="2.5s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <circle cx="30" cy="24" r="1.8" fill="rgba(255,255,255,0.7)">
+          <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" />
+        </circle>
+
+        <!-- Gradientes -->
+        <defs>
+          <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color: #667eea; stop-opacity: 0.8" />
+            <stop offset="50%" style="stop-color: #764ba2; stop-opacity: 0.9" />
+            <stop offset="100%" style="stop-color: #f093fb; stop-opacity: 0.7" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="brand-text">EventHub</span>
+    </div>
+    <nav class="nav">
+
+    </nav>
+    <div class="user-avatar" (click)="toggleUserDropdown()">
+      <div class="avatar-container">
+        @if (user.avatar) {
+        <img [src]="user.avatar" [alt]="user.name" class="avatar-image" />
+        } @else {
+        <div class="avatar-initials">
+          {{ getUserInitials() }}
+        </div>
+        }
+        <div class="avatar-status"></div>
+      </div>
+      <div class="user-info">
+        <span class="user-name">{{ user.name }}</span>
+        <span class="user-role">{{ user.role }}</span>
+      </div>
+      <svg
+        class="dropdown-arrow"
+        [class.rotated]="isUserDropdownOpen"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+
+      <!-- Dropdown Menu -->
+      @if (isUserDropdownOpen) {
+      <div class="user-dropdown" (click)="$event.stopPropagation()">
+        <a routerLink="/profile" class="dropdown-item" (click)="closeUserDropdown()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" />
+          </svg>
+          Meu Perfil
+        </a>
+        <a routerLink="/my-events" class="dropdown-item" (click)="closeUserDropdown()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <rect
+              x="3"
+              y="4"
+              width="18"
+              height="18"
+              rx="2"
+              ry="2"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2" />
+            <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2" />
+            <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2" />
+          </svg>
+          Meus Eventos
+        </a>
+        <a routerLink="/favorites" class="dropdown-item" (click)="closeUserDropdown()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+          Favoritos
+        </a>
+        <hr class="dropdown-divider" />
+        <a routerLink="/settings" class="dropdown-item" (click)="closeUserDropdown()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+          Configurações
+        </a>
+        <a href="#" class="dropdown-item logout" (click)="closeUserDropdown()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <polyline points="16,17 21,12 16,7" stroke="currentColor" stroke-width="2" />
+            <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" />
+          </svg>
+          Sair
+        </a>
+      </div>
+      }
+    </div>
+  </header>
+
+  <!-- Filtros -->
+  <section class="filters-section">
+    <div class="filters-container">
+      <div
+        class="filters-header"
+        [class.has-active-filters]="hasActiveFilters()"
+        (click)="toggleFilters()"
+      >
+        <h3 class="filters-title">
+          <svg class="filter-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 6h18M8 12h8M11 18h2"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          Filtrar Eventos
+          <span class="active-filters-badge" *ngIf="hasActiveFilters() && !isFiltersOpen">
+            {{ getActiveFiltersCount() }}
+          </span>
+        </h3>
+        <svg
+          class="toggle-arrow"
+          [class.rotated]="isFiltersOpen"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+
+      <div class="filters-content" [class.open]="isFiltersOpen">
+        <div class="filters-grid">
+          <!-- Filtro por Nome -->
+          <div class="filter-group">
+            <label for="nameFilter">Por Nome</label>
+            <input
+              id="nameFilter"
+              type="text"
+              [(ngModel)]="filters.name"
+              (input)="onSearchInput($event)"
+              placeholder="Digite o nome do evento..."
+              class="filter-input"
+            />
+          </div>
+
+          <!-- Filtro por Horário -->
+          <div class="filter-group">
+            <label for="timeFilter">Por Horário</label>
+            <select
+              id="timeFilter"
+              [(ngModel)]="filters.timeRange"
+              (change)="applyFilters()"
+              class="filter-select"
+            >
+              <option value="">Todos os horários</option>
+              <option value="morning">Manhã (06:00 - 12:00)</option>
+              <option value="afternoon">Tarde (12:00 - 18:00)</option>
+              <option value="evening">Noite (18:00 - 24:00)</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Tipo de Evento -->
+          <div class="filter-group">
+            <label for="eventTypeFilter">Por Tipo</label>
+            <select
+              id="eventTypeFilter"
+              [(ngModel)]="filters.eventType"
+              (change)="applyFilters()"
+              class="filter-select"
+            >
+              <option value="">Todos os tipos</option>
+              @for (type of eventTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Botão Limpar Filtros -->
+          <div class="filter-group">
+            <button
+              (click)="clearFilters()"
+              class="clear-filters-btn"
+              [disabled]="!hasActiveFilters()"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M18 6L6 18M6 6l12 12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              Limpar Filtros
+            </button>
+          </div>
+        </div>
+
+        <!-- Contador de Resultados -->
+        <div class="results-counter">
+          @if (isLoading) {
+            <span class="loading-text">Carregando eventos...</span>
+          } @else {
+            <span>Exibindo {{ filteredEvents.length }} de {{ totalEvents }} eventos</span>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="grid-wrap">
+    <!-- Indicador de Carregamento -->
+    @if (isLoading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Carregando eventos...</p>
+    </div>
+    }
+
+    <!-- Mensagem de Erro -->
+    @if (error && !isLoading) {
+    <div class="error-message">
+      <svg class="error-icon" width="48" height="48" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+        <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" />
+        <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2" />
+      </svg>
+      <h3>Erro ao carregar eventos</h3>
+      <p>{{ error }}</p>
+      <button (click)="loadEvents()" class="retry-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <path d="M3 3v5h5" stroke="currentColor" stroke-width="2" />
+        </svg>
+        Tentar Novamente
+      </button>
+    </div>
+    }
+
+    <!-- Mensagem quando não há eventos -->
+    @if (filteredEvents.length === 0 && !isLoading && !error) {
+    <div class="no-events-message">
+      <svg class="no-events-icon" width="48" height="48" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+        <path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" />
+      </svg>
+      <h3>Nenhum evento encontrado</h3>
+      <p>Tente ajustar os filtros ou limpar para ver todos os eventos disponíveis.</p>
+      <button (click)="clearFilters()" class="reset-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <path d="M3 3v5h5" stroke="currentColor" stroke-width="2" />
+        </svg>
+        Mostrar Todos os Eventos
+      </button>
+    </div>
+    }
+
+    <section class="grid">
+      @for (event of filteredEvents; track event.id) {
+      <article class="card" [style.--card-gradient]="getEventGradient(event.eventType)">
+        @if (event.imageUrl) {
+        <div class="eventoImage">
+          <img [src]="event.imageUrl" [alt]="event.name" />
+        </div>
+        }
+        <div class="card-top">
+          <div class="card-tag">{{ formatEventType(event.eventType) }}</div>
+          <h3 class="card-title">{{ event.name }}</h3>
+          <div class="card-time">🕒 {{ formatEventDate(event.eventDate) }}</div>
+          <p class="card-desc">{{ event.description }}</p>
+        </div>
+        <div class="card-cta">
+          <a class="btn" (click)="navigateToEvent(event.id)">
+            <span>Ver Detalhes</span>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </article>
+      }
+    </section>
+  </main>
+</div>
