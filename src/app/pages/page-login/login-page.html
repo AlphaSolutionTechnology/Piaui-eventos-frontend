@@ -2,11 +2,11 @@
   <!-- Header -->
   <header class="header">
     <div class="header-content">
-      <h1 class="logo">EventHub</h1>
+      <h1 class="logo text-brand">EventHub</h1>
       <nav class="nav-links">
-        <a routerLink="/events" class="nav-link">Eventos</a>
-        <a routerLink="/create-event" class="nav-link">Criar Evento</a>
-        <a routerLink="/login" class="nav-link active">Login</a>
+        <a routerLink="/events" class="nav-link text-nav">Eventos</a>
+        <a routerLink="/create-event" class="nav-link text-nav">Criar Evento</a>
+        <a routerLink="/login" class="nav-link active text-nav-active">Login</a>
       </nav>
     </div>
   </header>
@@ -18,7 +18,7 @@
       <div class="welcome-section">
         <div class="welcome-content">
           <h2 class="welcome-title">Bem-vindo de volta!</h2>
-          <p class="welcome-subtitle">Entre na sua conta para acessar eventos incríveis</p>
+          <p class="welcome-subtitle text-small">Entre na sua conta para acessar eventos incríveis</p>
 
           <div class="features-list">
             <div class="feature-item">
@@ -44,15 +44,15 @@
           <div class="stats-grid">
             <div class="stat-item">
               <div class="stat-number">500+</div>
-              <div class="stat-label">Eventos</div>
+              <div class="stat-label text-micro">Eventos</div>
             </div>
             <div class="stat-item">
               <div class="stat-number">10K+</div>
-              <div class="stat-label">Usuários</div>
+              <div class="stat-label text-micro">Usuários</div>
             </div>
             <div class="stat-item">
               <div class="stat-number">50+</div>
-              <div class="stat-label">Categorias</div>
+              <div class="stat-label text-micro">Categorias</div>
             </div>
           </div>
         </div>
@@ -63,7 +63,7 @@
         <div class="login-form-card">
           <div class="form-header">
             <h3>Entrar na sua conta</h3>
-            <p>Digite suas credenciais para acessar</p>
+            <p class="text-small">Digite suas credenciais para acessar</p>
           </div>
 
           <form (ngSubmit)="onSubmit()" #loginFormRef="ngForm" class="login-form">

@@ -22,13 +22,13 @@
           </linearGradient>
         </defs>
       </svg>
-      <span class="brand-text">EventHub</span>
+      <span class="brand-text text-brand">EventHub</span>
     </div>
 
     <nav class="nav">
-      <a routerLink="/events">Events</a>
-      <a routerLink="/create-event">Create Event</a>
-      <a routerLink="/login">Login</a>
+      <a routerLink="/events" class="text-nav">Events</a>
+      <a routerLink="/create-event" class="text-nav">Create Event</a>
+      <a routerLink="/login" class="text-nav">Login</a>
     </nav>
 
     <div class="header-actions">
@@ -57,8 +57,8 @@
       <div class="hero-container">
         <div class="hero-content">
           <div class="event-meta">
-            <span class="event-tag">{{ event.tag }}</span>
-            <span class="event-category">{{ event.category }}</span>
+            <span class="event-tag text-badge">{{ event.tag }}</span>
+            <span class="event-category text-micro">{{ event.category }}</span>
           </div>
 
           <h1 class="event-title">{{ event.title }}</h1>

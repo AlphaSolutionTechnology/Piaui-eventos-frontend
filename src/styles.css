@@ -1,8 +1,137 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* ===== TIPOGRAFIA - DESIGN SYSTEM ===== */
+:root {
+  /* === Font Stacks === */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-secondary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  
+  /* === Escalas Tipográficas - Títulos === */
+  --text-h1: 1.8rem;        /* 28.8px - Login/Pages principais */
+  --text-h2: 1.75rem;       /* 28px - Card Titles */
+  --text-h3: 1.5rem;        /* 24px - Section Headers */
+  --text-h4: 1.2rem;        /* 19.2px - Filter Titles */
+  
+  /* Pesos dos Títulos */
+  --weight-h1: bold;        /* 700 */
+  --weight-h2: 700;
+  --weight-h3: 600;
+  --weight-h4: 600;
+  
+  /* === Textos de Navegação === */
+  --text-nav: 0.9rem;               /* 14.4px */
+  --text-nav-weight: 500;           /* Normal */
+  --text-nav-active-weight: 600;    /* Ativo */
+  
+  /* === Textos do Corpo === */
+  --text-body: 0.95rem;     /* 15.2px - Texto principal */
+  --text-small: 0.85rem;    /* 13.6px - Texto menor */
+  --text-micro: 0.75rem;    /* 12px - Tags, User Role */
+  
+  /* Pesos dos Textos */
+  --weight-body: normal;    /* 400 */
+  --weight-small: normal;   /* 400 */
+  --weight-micro: 500;      /* Medium */
+  
+  /* === Textos Especiais === */
+  --text-brand: 1.1rem;               /* 17.6px - Logo text */
+  --text-brand-weight: 700;           /* Bold */
+  --text-brand-spacing: -0.5px;       /* Letter spacing */
+  
+  --text-user-name: 0.9rem;           /* 14.4px */
+  --text-user-name-weight: 600;       /* Semi-bold */
+  
+  --text-badge: 0.75rem;              /* 12px */
+  --text-badge-weight: 700;           /* Bold */
+  
+  /* === Propriedades Tipográficas === */
+  /* Line Heights */
+  --line-height-tight: 1;             /* Títulos compactos */
+  --line-height-normal: 1.2;          /* Títulos normais */
+  --line-height-relaxed: 1.5;         /* Textos de corpo */
+  
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.5px;     /* Brand text */
+  --letter-spacing-wide: 0.5px;       /* Tags e elementos pequenos */
+}
+
+/* === BASE STYLES === */
 html,
 body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
+  font-family: var(--font-primary);
+  font-size: var(--text-body);
+  font-weight: var(--weight-body);
+  line-height: var(--line-height-relaxed);
+}
+
+/* === TIPOGRAFIA GLOBAL === */
+h1 {
+  font-size: var(--text-h1);
+  font-weight: var(--weight-h1);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+h2 {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-h2);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+h3 {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-h3);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+h4 {
+  font-size: var(--text-h4);
+  font-weight: var(--weight-h4);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+/* === CLASSES UTILITÁRIAS === */
+.text-brand {
+  font-size: var(--text-brand);
+  font-weight: var(--text-brand-weight);
+  letter-spacing: var(--text-brand-spacing);
+}
+
+.text-nav {
+  font-size: var(--text-nav);
+  font-weight: var(--text-nav-weight);
+}
+
+.text-nav-active {
+  font-size: var(--text-nav);
+  font-weight: var(--text-nav-active-weight);
+}
+
+.text-user-name {
+  font-size: var(--text-user-name);
+  font-weight: var(--text-user-name-weight);
+}
+
+.text-small {
+  font-size: var(--text-small);
+  font-weight: var(--weight-small);
+}
+
+.text-micro {
+  font-size: var(--text-micro);
+  font-weight: var(--weight-micro);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.text-badge {
+  font-size: var(--text-badge);
+  font-weight: var(--text-badge-weight);
+  letter-spacing: var(--letter-spacing-wide);
 }

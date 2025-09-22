@@ -45,7 +45,7 @@
           </linearGradient>
         </defs>
       </svg>
-      <span class="brand-text">EventHub</span>
+      <span class="brand-text text-brand">EventHub</span>
     </div>
     <nav class="nav">
 
@@ -62,8 +62,8 @@
         <div class="avatar-status"></div>
       </div>
       <div class="user-info">
-        <span class="user-name">{{ user.name }}</span>
-        <span class="user-role">{{ user.role }}</span>
+        <span class="user-name text-user-name">{{ user.name }}</span>
+        <span class="user-role text-micro">{{ user.role }}</span>
       </div>
       <svg
         class="dropdown-arrow"
@@ -155,7 +155,7 @@
         [class.has-active-filters]="hasActiveFilters()"
         (click)="toggleFilters()"
       >
-        <h3 class="filters-title">
+        <h4 class="filters-title">
           <svg class="filter-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path
               d="M3 6h18M8 12h8M11 18h2"
@@ -165,10 +165,10 @@
             />
           </svg>
           Filtrar Eventos
-          <span class="active-filters-badge" *ngIf="hasActiveFilters() && !isFiltersOpen">
+          <span class="active-filters-badge text-badge" *ngIf="hasActiveFilters() && !isFiltersOpen">
             {{ getActiveFiltersCount() }}
           </span>
-        </h3>
+        </h4>
         <svg
           class="toggle-arrow"
           [class.rotated]="isFiltersOpen"
@@ -325,10 +325,10 @@
         </div>
         }
         <div class="card-top">
-          <div class="card-tag">{{ formatEventType(event.eventType) }}</div>
+          <div class="card-tag text-badge">{{ formatEventType(event.eventType) }}</div>
           <h3 class="card-title">{{ event.name }}</h3>
-          <div class="card-time">🕒 {{ formatEventDate(event.eventDate) }}</div>
-          <p class="card-desc">{{ event.description }}</p>
+          <div class="card-time text-small">🕒 {{ formatEventDate(event.eventDate) }}</div>
+          <p class="card-desc text-small">{{ event.description }}</p>
         </div>
         <div class="card-cta">
           <a class="btn" (click)="navigateToEvent(event.id)">
