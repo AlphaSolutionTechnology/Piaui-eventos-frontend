@@ -6,11 +6,11 @@ import { ApiEvent, EventsFilter, EventsResponse } from '../models/api-event.inte
 export type { EventsFilter } from '../models/api-event.interface';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EventsService {
   private readonly apiUrl = '/api/events'; // Base URL da API
-  
+
   // Estados do serviço
   private loadingSubject = new BehaviorSubject<boolean>(false);
   private errorSubject = new BehaviorSubject<string | null>(null);
@@ -35,7 +35,7 @@ export class EventsService {
       time: '20:00',
       location: 'Arena Riverside',
       address: 'Av. Raul Lopes, 1000 - Teresina, PI',
-      price: 80.00,
+      price: 80.0,
       maxParticipants: 500,
       currentParticipants: 320,
       organizerName: 'EventPro',
@@ -48,7 +48,7 @@ export class EventsService {
       allowWaitlist: true,
       status: 'published',
       createdAt: '2025-09-01T10:00:00Z',
-      updatedAt: '2025-09-15T14:30:00Z'
+      updatedAt: '2025-09-15T14:30:00Z',
     },
     {
       id: 2,
@@ -62,7 +62,7 @@ export class EventsService {
       time: '14:00',
       location: 'Centro de Convenções',
       address: 'Centro - Teresina, PI',
-      price: 120.00,
+      price: 120.0,
       maxParticipants: 50,
       currentParticipants: 35,
       organizerName: 'TechHub PI',
@@ -75,7 +75,7 @@ export class EventsService {
       allowWaitlist: false,
       status: 'published',
       createdAt: '2025-08-20T09:00:00Z',
-      updatedAt: '2025-09-01T16:20:00Z'
+      updatedAt: '2025-09-01T16:20:00Z',
     },
     {
       id: 3,
@@ -102,8 +102,8 @@ export class EventsService {
       allowWaitlist: false,
       status: 'published',
       createdAt: '2025-08-10T11:00:00Z',
-      updatedAt: '2025-08-25T10:15:00Z'
-    }
+      updatedAt: '2025-08-25T10:15:00Z',
+    },
   ];
 
   constructor(private http: HttpClient) {}
@@ -111,21 +111,29 @@ export class EventsService {
   /**
    * Busca eventos com filtros opcionais
    */
-  getEvents(filter?: EventsFilter, page: number = 1, size: number = 10): Observable<EventsResponse> {
+  getEvents(
+    filter?: EventsFilter,
+    page: number = 1,
+    size: number = 10
+  ): Observable<EventsResponse> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
     // Por enquanto retorna dados mockados
     // Em produção, substituir por chamada HTTP real
     return this.getMockEvents(filter, page, size).pipe(
-      tap(response => {
+      tap((response) => {
         this.eventsSubject.next(response.events);
         this.loadingSubject.next(false);
       }),
-      catchError(error => {
+      catchError((error) => {
         this.errorSubject.next('Erro ao carregar eventos');
         this.loadingSubject.next(false);
-        return of({ events: [], pagination: { page: 1, size: 10, total: 0, totalPages: 0 }, total: 0 });
+        return of({
+          events: [],
+          pagination: { page: 1, size: 10, total: 0, totalPages: 0 },
+          total: 0,
+        });
       })
     );
   }
@@ -137,11 +145,11 @@ export class EventsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    const event = this.mockEvents.find(e => e.id === id);
-    
+    const event = this.mockEvents.find((e) => e.id === id);
+
     return of(event || null).pipe(
       tap(() => this.loadingSubject.next(false)),
-      catchError(error => {
+      catchError((error) => {
         this.errorSubject.next('Erro ao carregar evento');
         this.loadingSubject.next(false);
         return of(null);
@@ -158,7 +166,7 @@ export class EventsService {
 
     // Simula criação de evento
     const newEvent: ApiEvent = {
-      id: Math.max(...this.mockEvents.map(e => e.id)) + 1,
+      id: Math.max(...this.mockEvents.map((e) => e.id)) + 1,
       title: eventData.title || '',
       name: eventData.title || '',
       description: eventData.description || '',
@@ -182,7 +190,7 @@ export class EventsService {
       allowWaitlist: eventData.allowWaitlist || false,
       status: 'published',
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     this.mockEvents.push(newEvent);
@@ -192,7 +200,7 @@ export class EventsService {
         this.loadingSubject.next(false);
         this.eventsSubject.next([...this.mockEvents]);
       }),
-      catchError(error => {
+      catchError((error) => {
         this.errorSubject.next('Erro ao criar evento');
         this.loadingSubject.next(false);
         throw error;
@@ -203,38 +211,43 @@ export class EventsService {
   /**
    * Implementação mockada para desenvolvimento
    */
-  private getMockEvents(filter?: EventsFilter, page: number = 1, size: number = 10): Observable<EventsResponse> {
+  private getMockEvents(
+    filter?: EventsFilter,
+    page: number = 1,
+    size: number = 10
+  ): Observable<EventsResponse> {
     let filteredEvents = [...this.mockEvents];
 
     // Aplicar filtros
     if (filter) {
       if (filter.search) {
         const searchTerm = filter.search.toLowerCase();
-        filteredEvents = filteredEvents.filter(event =>
-          event.title.toLowerCase().includes(searchTerm) ||
-          event.description.toLowerCase().includes(searchTerm) ||
-          event.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        filteredEvents = filteredEvents.filter(
+          (event) =>
+            event.title.toLowerCase().includes(searchTerm) ||
+            event.description.toLowerCase().includes(searchTerm) ||
+            event.tags.some((tag) => tag.toLowerCase().includes(searchTerm))
         );
       }
 
       if (filter.category) {
-        filteredEvents = filteredEvents.filter(event => event.category === filter.category);
+        filteredEvents = filteredEvents.filter((event) => event.category === filter.category);
       }
 
       if (filter.priceMin !== undefined) {
-        filteredEvents = filteredEvents.filter(event => event.price >= filter.priceMin!);
+        filteredEvents = filteredEvents.filter((event) => event.price >= filter.priceMin!);
       }
 
       if (filter.priceMax !== undefined) {
-        filteredEvents = filteredEvents.filter(event => event.price <= filter.priceMax!);
+        filteredEvents = filteredEvents.filter((event) => event.price <= filter.priceMax!);
       }
 
       if (filter.dateFrom) {
-        filteredEvents = filteredEvents.filter(event => event.date >= filter.dateFrom!);
+        filteredEvents = filteredEvents.filter((event) => event.date >= filter.dateFrom!);
       }
 
       if (filter.dateTo) {
-        filteredEvents = filteredEvents.filter(event => event.date <= filter.dateTo!);
+        filteredEvents = filteredEvents.filter((event) => event.date <= filter.dateTo!);
       }
     }
 
@@ -251,9 +264,9 @@ export class EventsService {
         page,
         size,
         total,
-        totalPages
+        totalPages,
       },
-      total
+      total,
     };
 
     return of(response);
@@ -270,7 +283,7 @@ export class EventsService {
    * Busca categorias disponíveis
    */
   getCategories(): Observable<string[]> {
-    const categories = [...new Set(this.mockEvents.map(event => event.category))];
+    const categories = [...new Set(this.mockEvents.map((event) => event.category))];
     return of(categories);
   }
 
@@ -278,7 +291,7 @@ export class EventsService {
    * Busca tipos de eventos disponíveis
    */
   getEventTypes(): Observable<string[]> {
-    const eventTypes = [...new Set(this.mockEvents.map(event => event.category))]; // Using category as eventType
+    const eventTypes = [...new Set(this.mockEvents.map((event) => event.category))]; // Using category as eventType
     return of(eventTypes);
   }
 }
