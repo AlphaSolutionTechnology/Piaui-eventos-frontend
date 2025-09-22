@@ -94,10 +94,10 @@ export class EventsPage implements OnInit, OnDestroy {
       .getEventTypes()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (types) => {
+        next: (types: string[]) => {
           this.eventTypes = types;
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Erro ao carregar tipos de evento:', error);
         },
       });

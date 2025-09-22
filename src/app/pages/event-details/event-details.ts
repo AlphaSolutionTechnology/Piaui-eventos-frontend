@@ -22,7 +22,7 @@ export class EventDetailsPage implements OnInit {
     location: 'Centro de Convenções - Teresina, PI',
     desc: 'Uma noite inesquecível com os melhores artistas nacionais e internacionais. Prepare-se para uma experiência musical única que ficará para sempre na sua memória.',
     longDescription: 'O Festival de Música 2025 trará para Teresina uma seleção especial dos melhores artistas do cenário nacional e internacional. Com três palcos simultâneos, food trucks, área VIP e muito mais. Este evento marca o calendário cultural da cidade e promete ser o maior festival musical do Piauí.',
-    imageUrl: 'assets/evento-exemplo.jpeg',
+    imageUrl: 'assets/events/evento-exemplo.svg',
     bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
     organizer: 'EventHub Produções',
     price: 'R$ 120,00',

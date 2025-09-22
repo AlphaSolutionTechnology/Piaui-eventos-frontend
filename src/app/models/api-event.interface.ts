@@ -1,9 +1,12 @@
 export interface ApiEvent {
   id: number;
   title: string;
+  name: string; // Alias for title
   description: string;
   category: string;
+  eventType: string; // Alias for category
   date: string;
+  eventDate: string; // Alias for date
   time: string;
   location: string;
   address: string;
@@ -45,4 +48,5 @@ export interface EventsPagination {
 export interface EventsResponse {
   events: ApiEvent[];
   pagination: EventsPagination;
+  total: number; // Direct access to total events count
 }

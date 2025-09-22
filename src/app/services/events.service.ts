@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiEvent, EventsFilter, EventsResponse } from '../models/api-event.interface';
 
-export { EventsFilter } from '../models/api-event.interface';
+export type { EventsFilter } from '../models/api-event.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -26,9 +26,12 @@ export class EventsService {
     {
       id: 1,
       title: 'Festival de Música Eletrônica',
+      name: 'Festival de Música Eletrônica',
       description: 'Uma noite incrível com os melhores DJs nacionais e internacionais.',
       category: 'Música',
+      eventType: 'Música',
       date: '2025-12-15',
+      eventDate: '2025-12-15',
       time: '20:00',
       location: 'Arena Riverside',
       address: 'Av. Raul Lopes, 1000 - Teresina, PI',
@@ -38,7 +41,7 @@ export class EventsService {
       organizerName: 'EventPro',
       organizerEmail: 'contato@eventpro.com',
       organizerPhone: '(86) 3234-5678',
-      imageUrl: 'assets/events/festival-musica.jpg',
+      imageUrl: 'assets/events/evento-exemplo.svg',
       tags: ['música', 'eletrônica', 'festa', 'dj'],
       requiresApproval: false,
       isPublic: true,
@@ -50,9 +53,12 @@ export class EventsService {
     {
       id: 2,
       title: 'Workshop de Desenvolvimento Web',
+      name: 'Workshop de Desenvolvimento Web',
       description: 'Aprenda as últimas tecnologias de desenvolvimento web com especialistas.',
       category: 'Tecnologia',
+      eventType: 'Tecnologia',
       date: '2025-10-10',
+      eventDate: '2025-10-10',
       time: '14:00',
       location: 'Centro de Convenções',
       address: 'Centro - Teresina, PI',
@@ -62,7 +68,7 @@ export class EventsService {
       organizerName: 'TechHub PI',
       organizerEmail: 'eventos@techhub.com',
       organizerPhone: '(86) 99999-8888',
-      imageUrl: 'assets/events/workshop-dev.jpg',
+      imageUrl: 'assets/events/evento-exemplo.svg',
       tags: ['tecnologia', 'programação', 'web', 'workshop'],
       requiresApproval: true,
       isPublic: true,
@@ -74,9 +80,12 @@ export class EventsService {
     {
       id: 3,
       title: 'Feira de Artesanato Local',
+      name: 'Feira de Artesanato Local',
       description: 'Exposição e venda de artesanatos produzidos por artistas locais.',
       category: 'Cultura',
+      eventType: 'Cultura',
       date: '2025-11-05',
+      eventDate: '2025-11-05',
       time: '08:00',
       location: 'Praça Pedro II',
       address: 'Centro Histórico - Teresina, PI',
@@ -86,7 +95,7 @@ export class EventsService {
       organizerName: 'Secretaria de Cultura',
       organizerEmail: 'cultura@teresina.pi.gov.br',
       organizerPhone: '(86) 3215-7890',
-      imageUrl: 'assets/events/feira-artesanato.jpg',
+      imageUrl: 'assets/events/evento-exemplo.svg',
       tags: ['cultura', 'artesanato', 'arte', 'gratuito'],
       requiresApproval: false,
       isPublic: true,
@@ -116,7 +125,7 @@ export class EventsService {
       catchError(error => {
         this.errorSubject.next('Erro ao carregar eventos');
         this.loadingSubject.next(false);
-        return of({ events: [], pagination: { page: 1, size: 10, total: 0, totalPages: 0 } });
+        return of({ events: [], pagination: { page: 1, size: 10, total: 0, totalPages: 0 }, total: 0 });
       })
     );
   }
@@ -151,9 +160,12 @@ export class EventsService {
     const newEvent: ApiEvent = {
       id: Math.max(...this.mockEvents.map(e => e.id)) + 1,
       title: eventData.title || '',
+      name: eventData.title || '',
       description: eventData.description || '',
       category: eventData.category || '',
+      eventType: eventData.category || '',
       date: eventData.date || '',
+      eventDate: eventData.date || '',
       time: eventData.time || '',
       location: eventData.location || '',
       address: eventData.address || '',
@@ -240,7 +252,8 @@ export class EventsService {
         size,
         total,
         totalPages
-      }
+      },
+      total
     };
 
     return of(response);
@@ -259,5 +272,13 @@ export class EventsService {
   getCategories(): Observable<string[]> {
     const categories = [...new Set(this.mockEvents.map(event => event.category))];
     return of(categories);
+  }
+
+  /**
+   * Busca tipos de eventos disponíveis
+   */
+  getEventTypes(): Observable<string[]> {
+    const eventTypes = [...new Set(this.mockEvents.map(event => event.category))]; // Using category as eventType
+    return of(eventTypes);
   }
 }
