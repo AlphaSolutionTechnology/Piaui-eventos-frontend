@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { AuthService, AuthResponse } from '../../services/auth';
 
 interface LoginForm {
   email: string;
@@ -25,22 +28,20 @@ export class LoginPage {
   loginForm: LoginForm = {
     email: '',
     password: '',
-    rememberMe: false
+    rememberMe: false,
   };
 
-  constructor(private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   validateForm(): boolean {
     if (!this.loginForm.email.trim()) {
       this.showErrorMessage('E-mail é obrigatório');
       return false;
     }
-
     if (!this.isValidEmail(this.loginForm.email)) {
       this.showErrorMessage('E-mail inválido');
       return false;
     }
-
     if (!this.loginForm.password.trim()) {
       this.showErrorMessage('Senha é obrigatória');
       return false;
@@ -49,7 +50,6 @@ export class LoginPage {
       this.showErrorMessage('Senha deve ter pelo menos 6 caracteres');
       return false;
     }
-
     return true;
   }
 
@@ -76,23 +76,30 @@ export class LoginPage {
     }
 
     this.isLoading = true;
+    this.showError = false; // Reseta o erro antes de tentar novamente
 
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      // For demo purposes, accept any valid email/password combination
-      if (this.loginForm.email && this.loginForm.password.length >= 6) {
-        // Store login state (in a real app, use proper authentication)
-        localStorage.setItem('user', JSON.stringify({
-          email: this.loginForm.email,
-          name: this.loginForm.email.split('@')[0]
-        }));
+    this.authService
+      .login(this.loginForm.email, this.loginForm.password)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        // Callback para SUCESSO na chamada
+        next: (response: AuthResponse) => {
+          localStorage.setItem('authToken', response.token);
+          // Você também pode guardar informações do usuário
+          localStorage.setItem('user', JSON.stringify(response.user));
 
-        this.router.navigate(['/events']);
-      } else {
-        this.showErrorMessage('Credenciais inválidas');
-      }
-    }, 1500);
+          // Navega para a página de eventos após o login
+          this.router.navigate(['/events']);
+        },
+        error: (err) => {
+          const message = err.error?.message || 'Credenciais inválidas ou erro no servidor.';
+          this.showErrorMessage(message);
+        },
+      });
   }
 
   navigateToRegister() {
@@ -100,7 +107,6 @@ export class LoginPage {
   }
 
   forgotPassword() {
-    // In a real app, this would trigger a password reset flow
     alert('Funcionalidade de recuperação de senha será implementada em breve!');
   }
 }
