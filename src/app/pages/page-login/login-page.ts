@@ -45,7 +45,6 @@ export class LoginPage {
       this.showErrorMessage('Senha é obrigatória');
       return false;
     }
-
     if (this.loginForm.password.length < 6) {
       this.showErrorMessage('Senha deve ter pelo menos 6 caracteres');
       return false;
