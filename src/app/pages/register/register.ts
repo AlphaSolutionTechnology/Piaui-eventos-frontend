@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { RegisterService } from '../../services/register-service';
 
 interface RegisterForm {
   firstName: string;
@@ -20,7 +21,7 @@ interface RegisterForm {
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './register.html',
-  styleUrls: ['./register.css']
+  styleUrls: ['./register.css'],
 })
 export class RegisterComponent {
   isLoading = false;
@@ -41,10 +42,10 @@ export class RegisterComponent {
     confirmPassword: '',
     birthDate: '',
     agreeTerms: false,
-    receiveUpdates: true
+    receiveUpdates: true,
   };
 
-  constructor(private router: Router) {}
+  constructor(private registerService: RegisterService, private router: Router) {}
 
   nextStep() {
     if (this.validateCurrentStep()) {
@@ -191,10 +192,14 @@ export class RegisterComponent {
   getPasswordStrengthLabel(): string {
     const strength = this.getPasswordStrength();
     switch (strength) {
-      case 'weak': return 'Fraca';
-      case 'medium': return 'Média';
-      case 'strong': return 'Forte';
-      default: return '';
+      case 'weak':
+        return 'Fraca';
+      case 'medium':
+        return 'Média';
+      case 'strong':
+        return 'Forte';
+      default:
+        return '';
     }
   }
 
@@ -205,16 +210,28 @@ export class RegisterComponent {
 
     this.isLoading = true;
 
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      this.showSuccess = true;
+    this.registerService
+      .register(
+        this.registerForm.firstName + ' ' + this.registerForm.lastName,
+        this.registerForm.email,
+        this.registerForm.password,
+        this.registerForm.phone
+      )
+      .subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          this.showSuccess = true;
 
-      // Redirect after success
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 3000);
-    }, 2000);
+          setTimeout(() => {
+            this.isLoading = false;
+            this.router.navigate(['/login']);
+          }, 3000);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.showErrorMessage('Erro ao criar conta');
+        },
+      });
   }
 
   navigateToLogin() {
