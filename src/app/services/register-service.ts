@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../enviroment';
 
 // Interface baseada no UserResponseDTO do backend
 export interface UserResponse {
@@ -14,7 +15,7 @@ export interface UserResponse {
   providedIn: 'root',
 })
 export class RegisterService {
-  private apiUrl = `http://localhost:8080/api/user`;
+  private apiUrl = environment.API_URL;
 
   constructor(private http: HttpClient) {}
 
@@ -33,6 +34,6 @@ export class RegisterService {
       phoneNumber,
       roleId,
     };
-    return this.http.post<UserResponse>(this.apiUrl, userData);
+    return this.http.post<UserResponse>(`${this.apiUrl}/user`, userData);
   }
 }
