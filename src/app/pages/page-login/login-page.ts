@@ -88,10 +88,10 @@ export class LoginPage {
       .subscribe({
         // Callback para SUCESSO na chamada
         next: (response: AuthResponse) => {
-          localStorage.setItem('authToken', response.token);
-          // Você também pode guardar informações do usuário
-          localStorage.setItem('user', JSON.stringify(response.user));
-
+          // O token já foi salvo no AuthService.login()
+          // Os dados do usuário serão buscados automaticamente via /api/user/me
+          console.log('Login bem-sucedido, redirecionando...');
+          
           // Navega para a página de eventos após o login
           this.router.navigate(['/events']);
         },

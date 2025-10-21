@@ -2,14 +2,67 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { ApiEvent, EventsFilter, EventsResponse } from '../models/api-event.interface';
+import { environment } from '../../../enviroment';
 
 export type { EventsFilter } from '../models/api-event.interface';
+
+// Interface para a resposta paginada do Spring Boot
+interface SpringPageResponse<T> {
+  content: T[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  size: number;
+  number: number;
+  sort: {
+    empty: boolean;
+    sorted: boolean;
+    unsorted: boolean;
+  };
+  numberOfElements: number;
+  first: boolean;
+  empty: boolean;
+}
+
+// Interface para o evento do backend (EventResponse do Spring Boot)
+interface BackendEvent {
+  id: number;
+  name: string;
+  description: string;
+  imageUrl: string;
+  eventDate: string; // ISO format: "2025-12-15T20:00:00"
+  eventType: string;
+  maxSubs: number;
+  subscribersCount: number;
+  eventLocation: {
+    id: number;
+    placeName: string;
+    fullAddress: string;
+    zipCode: string;
+    latitude: string;
+    longitude: string;
+    locationCategory: string;
+  };
+  version: number;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class EventsService {
-  private readonly apiUrl = '/api/events'; // Base URL da API
+  private readonly apiUrl = `${environment.API_URL}/events`;
 
   // Estados do serviço
   private loadingSubject = new BehaviorSubject<boolean>(false);
@@ -21,121 +74,145 @@ export class EventsService {
   public error$ = this.errorSubject.asObservable();
   public events$ = this.eventsSubject.asObservable();
 
-  // Dados mockados para desenvolvimento
-  private mockEvents: ApiEvent[] = [
-    {
-      id: 1,
-      title: 'Festival de Música Eletrônica',
-      name: 'Festival de Música Eletrônica',
-      description: 'Uma noite incrível com os melhores DJs nacionais e internacionais.',
-      category: 'Música',
-      eventType: 'Música',
-      date: '2025-12-15',
-      eventDate: '2025-12-15',
-      time: '20:00',
-      location: 'Arena Riverside',
-      address: 'Av. Raul Lopes, 1000 - Teresina, PI',
-      price: 80.0,
-      maxParticipants: 500,
-      currentParticipants: 320,
-      organizerName: 'EventPro',
-      organizerEmail: 'contato@eventpro.com',
-      organizerPhone: '(86) 3234-5678',
-      imageUrl: 'assets/events/evento-exemplo.svg',
-      tags: ['música', 'eletrônica', 'festa', 'dj'],
-      requiresApproval: false,
-      isPublic: true,
-      allowWaitlist: true,
-      status: 'published',
-      createdAt: '2025-09-01T10:00:00Z',
-      updatedAt: '2025-09-15T14:30:00Z',
-    },
-    {
-      id: 2,
-      title: 'Workshop de Desenvolvimento Web',
-      name: 'Workshop de Desenvolvimento Web',
-      description: 'Aprenda as últimas tecnologias de desenvolvimento web com especialistas.',
-      category: 'Tecnologia',
-      eventType: 'Tecnologia',
-      date: '2025-10-10',
-      eventDate: '2025-10-10',
-      time: '14:00',
-      location: 'Centro de Convenções',
-      address: 'Centro - Teresina, PI',
-      price: 120.0,
-      maxParticipants: 50,
-      currentParticipants: 35,
-      organizerName: 'TechHub PI',
-      organizerEmail: 'eventos@techhub.com',
-      organizerPhone: '(86) 99999-8888',
-      imageUrl: 'assets/events/evento-exemplo.svg',
-      tags: ['tecnologia', 'programação', 'web', 'workshop'],
-      requiresApproval: true,
-      isPublic: true,
-      allowWaitlist: false,
-      status: 'published',
-      createdAt: '2025-08-20T09:00:00Z',
-      updatedAt: '2025-09-01T16:20:00Z',
-    },
-    {
-      id: 3,
-      title: 'Feira de Artesanato Local',
-      name: 'Feira de Artesanato Local',
-      description: 'Exposição e venda de artesanatos produzidos por artistas locais.',
-      category: 'Cultura',
-      eventType: 'Cultura',
-      date: '2025-11-05',
-      eventDate: '2025-11-05',
-      time: '08:00',
-      location: 'Praça Pedro II',
-      address: 'Centro Histórico - Teresina, PI',
-      price: 0,
-      maxParticipants: 1000,
-      currentParticipants: 150,
-      organizerName: 'Secretaria de Cultura',
-      organizerEmail: 'cultura@teresina.pi.gov.br',
-      organizerPhone: '(86) 3215-7890',
-      imageUrl: 'assets/events/evento-exemplo.svg',
-      tags: ['cultura', 'artesanato', 'arte', 'gratuito'],
-      requiresApproval: false,
-      isPublic: true,
-      allowWaitlist: false,
-      status: 'published',
-      createdAt: '2025-08-10T11:00:00Z',
-      updatedAt: '2025-08-25T10:15:00Z',
-    },
-  ];
-
   constructor(private http: HttpClient) {}
 
   /**
-   * Busca eventos com filtros opcionais
+   * Retorna o valor atual dos eventos em cache
+   */
+  getCachedEvents(): ApiEvent[] {
+    return this.eventsSubject.value;
+  }
+
+  /**
+   * Retorna o estado atual de loading
+   */
+  isCurrentlyLoading(): boolean {
+    return this.loadingSubject.value;
+  }
+
+  /**
+   * Reseta o estado de loading manualmente
+   */
+  resetLoading(): void {
+    this.loadingSubject.next(false);
+  }
+
+  /**
+   * Busca eventos com filtros opcionais e paginação
+   * @param filter - Filtros de busca
+   * @param page - Número da página (0-indexed)
+   * @param size - Quantidade de itens por página
+   * @param append - Se true, adiciona os novos eventos aos existentes (para infinite scroll)
    */
   getEvents(
     filter?: EventsFilter,
-    page: number = 1,
-    size: number = 10
+    page: number = 0,
+    size: number = 20,
+    append: boolean = false
   ): Observable<EventsResponse> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    // Por enquanto retorna dados mockados
-    // Em produção, substituir por chamada HTTP real
-    return this.getMockEvents(filter, page, size).pipe(
+    // Construir parâmetros HTTP
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', 'eventDate,desc'); // Ordenar por data (mais recentes primeiro)
+
+    if (filter?.search) {
+      params = params.set('search', filter.search);
+    }
+
+    if (filter?.category) {
+      params = params.set('eventType', filter.category);
+    }
+
+    // Fazer requisição para a API (endpoint público, sem withCredentials)
+    console.log('EventsService.getEvents() - Fazendo requisição:', { page, size, append, filter });
+
+    return this.http.get<SpringPageResponse<BackendEvent>>(this.apiUrl, { params }).pipe(
+      map((response) => {
+        console.log('EventsService.getEvents() - Resposta recebida:', {
+          eventos: response.content.length,
+          totalElements: response.totalElements,
+          page: response.number,
+        });
+        return this.transformBackendResponse(response);
+      }),
       tap((response) => {
-        this.eventsSubject.next(response.events);
+        console.log('EventsService.getEvents() - Resetando loading para false');
         this.loadingSubject.next(false);
+
+        // Apenas atualizar o BehaviorSubject se append=false
+        // Se append=true, o componente gerencia a lista internamente
+        if (!append) {
+          this.eventsSubject.next(response.events);
+        }
       }),
       catchError((error) => {
-        this.errorSubject.next('Erro ao carregar eventos');
+        console.error('EventsService.getEvents() - Erro ao carregar eventos:', error);
+        this.errorSubject.next('Erro ao carregar eventos. Tente novamente.');
         this.loadingSubject.next(false);
         return of({
           events: [],
-          pagination: { page: 1, size: 10, total: 0, totalPages: 0 },
+          pagination: { page: 0, size, total: 0, totalPages: 0 },
           total: 0,
         });
       })
     );
+  }
+
+  /**
+   * Transforma a resposta do backend Spring Boot para o formato do frontend
+   */
+  private transformBackendResponse(response: SpringPageResponse<BackendEvent>): EventsResponse {
+    const events: ApiEvent[] = response.content.map((event) => this.transformBackendEvent(event));
+
+    return {
+      events,
+      pagination: {
+        page: response.number,
+        size: response.size,
+        total: response.totalElements,
+        totalPages: response.totalPages,
+      },
+      total: response.totalElements,
+    };
+  }
+
+  /**
+   * Transforma um evento do backend para o formato do frontend
+   */
+  private transformBackendEvent(backendEvent: BackendEvent): ApiEvent {
+    const eventDate = new Date(backendEvent.eventDate);
+
+    return {
+      id: backendEvent.id,
+      title: backendEvent.name,
+      name: backendEvent.name,
+      description: backendEvent.description,
+      category: backendEvent.eventType,
+      eventType: backendEvent.eventType,
+      date: backendEvent.eventDate.split('T')[0], // "2025-12-15"
+      eventDate: backendEvent.eventDate,
+      time: eventDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      location: backendEvent.eventLocation.placeName,
+      address: backendEvent.eventLocation.fullAddress,
+      price: 0, // Backend não tem campo de preço ainda
+      maxParticipants: backendEvent.maxSubs,
+      currentParticipants: backendEvent.subscribersCount,
+      organizerName: 'Organizador', // Backend não tem campo de organizador ainda
+      organizerEmail: '',
+      organizerPhone: '',
+      imageUrl: backendEvent.imageUrl || 'assets/events/evento-exemplo.svg',
+      tags: [], // Backend não tem tags ainda
+      requiresApproval: false,
+      isPublic: true,
+      allowWaitlist: false,
+      status: 'published',
+      createdAt: backendEvent.eventDate,
+      updatedAt: backendEvent.eventDate,
+    };
   }
 
   /**
@@ -145,12 +222,12 @@ export class EventsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    const event = this.mockEvents.find((e) => e.id === id);
-
-    return of(event || null).pipe(
+    return this.http.get<BackendEvent>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
+      map((backendEvent) => this.transformBackendEvent(backendEvent)),
       tap(() => this.loadingSubject.next(false)),
       catchError((error) => {
-        this.errorSubject.next('Erro ao carregar evento');
+        console.error('Erro ao carregar evento:', error);
+        this.errorSubject.next('Erro ao carregar evento. Tente novamente.');
         this.loadingSubject.next(false);
         return of(null);
       })
@@ -164,112 +241,102 @@ export class EventsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    // Simula criação de evento
-    const newEvent: ApiEvent = {
-      id: Math.max(...this.mockEvents.map((e) => e.id)) + 1,
-      title: eventData.title || '',
-      name: eventData.title || '',
+    // Transformar dados do frontend para o formato do backend
+    const backendEventData = {
+      name: eventData.name || eventData.title || '',
       description: eventData.description || '',
-      category: eventData.category || '',
-      eventType: eventData.category || '',
-      date: eventData.date || '',
-      eventDate: eventData.date || '',
-      time: eventData.time || '',
-      location: eventData.location || '',
-      address: eventData.address || '',
-      price: eventData.price || 0,
-      maxParticipants: eventData.maxParticipants || 0,
-      currentParticipants: 0,
-      organizerName: eventData.organizerName || '',
-      organizerEmail: eventData.organizerEmail || '',
-      organizerPhone: eventData.organizerPhone || '',
-      imageUrl: eventData.imageUrl,
-      tags: eventData.tags || [],
-      requiresApproval: eventData.requiresApproval || false,
-      isPublic: eventData.isPublic !== false,
-      allowWaitlist: eventData.allowWaitlist || false,
-      status: 'published',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      imageUrl: eventData.imageUrl || '',
+      eventDate: `${eventData.date}T${eventData.time}:00`, // "2025-12-15T20:00:00"
+      eventType: eventData.eventType || eventData.category || '',
+      maxSubs: eventData.maxParticipants || 0,
+      eventLocation: {
+        placeName: eventData.location || '',
+        fullAddress: eventData.address || '',
+        zipCode: '',
+        latitude: '0',
+        longitude: '0',
+        locationCategory: 'OTHER',
+      },
     };
 
-    this.mockEvents.push(newEvent);
+    return this.http
+      .post<BackendEvent>(this.apiUrl, backendEventData, { withCredentials: true })
+      .pipe(
+        map((backendEvent) => this.transformBackendEvent(backendEvent)),
+        tap((newEvent) => {
+          this.loadingSubject.next(false);
+          // Atualizar lista de eventos
+          const currentEvents = this.eventsSubject.value;
+          this.eventsSubject.next([newEvent, ...currentEvents]);
+        }),
+        catchError((error) => {
+          console.error('Erro ao criar evento:', error);
+          this.errorSubject.next('Erro ao criar evento. Tente novamente.');
+          this.loadingSubject.next(false);
+          throw error;
+        })
+      );
+  }
 
-    return of(newEvent).pipe(
+  /**
+   * Atualiza um evento existente
+   */
+  updateEvent(id: number, eventData: Partial<ApiEvent>): Observable<ApiEvent> {
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    const backendEventData = {
+      name: eventData.name || eventData.title || '',
+      description: eventData.description || '',
+      imageUrl: eventData.imageUrl || '',
+      eventDate: `${eventData.date}T${eventData.time}:00`,
+      eventType: eventData.eventType || eventData.category || '',
+      maxSubs: eventData.maxParticipants || 0,
+      eventLocation: {
+        placeName: eventData.location || '',
+        fullAddress: eventData.address || '',
+        zipCode: '',
+        latitude: '0',
+        longitude: '0',
+        locationCategory: 'OTHER',
+      },
+    };
+
+    return this.http
+      .put<BackendEvent>(`${this.apiUrl}/${id}`, backendEventData, { withCredentials: true })
+      .pipe(
+        map((backendEvent) => this.transformBackendEvent(backendEvent)),
+        tap(() => this.loadingSubject.next(false)),
+        catchError((error) => {
+          console.error('Erro ao atualizar evento:', error);
+          this.errorSubject.next('Erro ao atualizar evento. Tente novamente.');
+          this.loadingSubject.next(false);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Deleta um evento
+   */
+  deleteEvent(id: number): Observable<void> {
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
       tap(() => {
         this.loadingSubject.next(false);
-        this.eventsSubject.next([...this.mockEvents]);
+        // Remover da lista local
+        const currentEvents = this.eventsSubject.value;
+        this.eventsSubject.next(currentEvents.filter((e) => e.id !== id));
       }),
       catchError((error) => {
-        this.errorSubject.next('Erro ao criar evento');
+        console.error('Erro ao deletar evento:', error);
+        this.errorSubject.next('Erro ao deletar evento. Tente novamente.');
         this.loadingSubject.next(false);
         throw error;
       })
     );
-  }
-
-  /**
-   * Implementação mockada para desenvolvimento
-   */
-  private getMockEvents(
-    filter?: EventsFilter,
-    page: number = 1,
-    size: number = 10
-  ): Observable<EventsResponse> {
-    let filteredEvents = [...this.mockEvents];
-
-    // Aplicar filtros
-    if (filter) {
-      if (filter.search) {
-        const searchTerm = filter.search.toLowerCase();
-        filteredEvents = filteredEvents.filter(
-          (event) =>
-            event.title.toLowerCase().includes(searchTerm) ||
-            event.description.toLowerCase().includes(searchTerm) ||
-            event.tags.some((tag) => tag.toLowerCase().includes(searchTerm))
-        );
-      }
-
-      if (filter.category) {
-        filteredEvents = filteredEvents.filter((event) => event.category === filter.category);
-      }
-
-      if (filter.priceMin !== undefined) {
-        filteredEvents = filteredEvents.filter((event) => event.price >= filter.priceMin!);
-      }
-
-      if (filter.priceMax !== undefined) {
-        filteredEvents = filteredEvents.filter((event) => event.price <= filter.priceMax!);
-      }
-
-      if (filter.dateFrom) {
-        filteredEvents = filteredEvents.filter((event) => event.date >= filter.dateFrom!);
-      }
-
-      if (filter.dateTo) {
-        filteredEvents = filteredEvents.filter((event) => event.date <= filter.dateTo!);
-      }
-    }
-
-    // Aplicar paginação
-    const total = filteredEvents.length;
-    const totalPages = Math.ceil(total / size);
-    const startIndex = (page - 1) * size;
-    const endIndex = startIndex + size;
-    const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
-
-    const response: EventsResponse = {
-      events: paginatedEvents,
-      pagination: {
-        page,
-        size,
-        total,
-        totalPages,
-      },
-      total,
-    };
-
-    return of(response);
   }
 
   /**
@@ -283,7 +350,8 @@ export class EventsService {
    * Busca categorias disponíveis
    */
   getCategories(): Observable<string[]> {
-    const categories = [...new Set(this.mockEvents.map((event) => event.category))];
+    // Retornar tipos de eventos predefinidos ou buscar da API
+    const categories = ['TECNOLOGIA', 'CULTURA', 'ESPORTES', 'NEGOCIOS', 'MUSICA'];
     return of(categories);
   }
 
@@ -291,7 +359,8 @@ export class EventsService {
    * Busca tipos de eventos disponíveis
    */
   getEventTypes(): Observable<string[]> {
-    const eventTypes = [...new Set(this.mockEvents.map((event) => event.category))]; // Using category as eventType
+    // Retornar tipos de eventos predefinidos ou buscar da API
+    const eventTypes = ['TECNOLOGIA', 'CULTURA', 'ESPORTES', 'NEGOCIOS', 'MUSICA'];
     return of(eventTypes);
   }
 }

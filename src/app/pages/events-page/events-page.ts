@@ -1,11 +1,21 @@
-import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {
+  Component,
+  HostListener,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  Inject,
+  PLATFORM_ID,
+  NgZone,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 import { EventsService, EventsFilter } from '../../services/events.service';
-import { ApiEvent } from '../../models/api-event.interface';
+import { ApiEvent, EventsResponse } from '../../models/api-event.interface';
+import { AuthService, User } from '../../services/auth';
 
 @Component({
   standalone: true,
@@ -13,17 +23,20 @@ import { ApiEvent } from '../../models/api-event.interface';
   imports: [CommonModule, RouterLink, FormsModule, HttpClientModule],
   templateUrl: './events-page.html',
   styleUrl: './events-page.css',
-  providers: [EventsService],
 })
 export class EventsPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
 
-  // Dados do usuário
-  user = {
-    name: 'João Silva',
+  // Dados do usuário (carregados dinamicamente)
+  user: User = {
+    id: 0,
+    name: 'Usuário',
+    email: '',
+    phoneNumber: '',
     role: 'Participante',
-    avatar: '', // Deixe vazio para mostrar iniciais, ou coloque uma URL para mostrar foto
+    roleId: 0,
+    avatar: '',
   };
 
   // Controla se o dropdown do usuário está aberto
@@ -36,10 +49,13 @@ export class EventsPage implements OnInit, OnDestroy {
   isLoading = false;
   error: string | null = null;
 
-  // Paginação
-  currentPage = 1;
+  // Paginação (Spring Boot usa página 0-indexed)
+  currentPage = 0;
   totalEvents = 0;
-  eventsPerPage = 12;
+  totalPages = 0;
+  eventsPerPage = 20; // Mesma quantidade do service
+  hasMoreEvents = true;
+  isLoadingMore = false;
 
   // Objeto para armazenar os filtros
   filters = {
@@ -51,13 +67,61 @@ export class EventsPage implements OnInit, OnDestroy {
   // Controla se os filtros estão abertos ou fechados
   isFiltersOpen = false;
 
-  constructor(private eventsService: EventsService) {}
+  constructor(
+    private eventsService: EventsService,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private ngZone: NgZone,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
-    this.loadEvents();
-    this.loadEventTypes();
+    // Voltar ao topo da página ao inicializar (apenas no browser)
+    if (isPlatformBrowser(this.platformId)) {
+      window.scrollTo(0, 0);
+    }
+
+    // Carregar dados do usuário logado
+    this.loadUserData();
+
+    // Configurar observables primeiro
     this.setupSearchDebounce();
-    this.subscribeToServiceStates();
+    this.loadEventTypes();
+
+    // Verificar se já existem eventos carregados no service
+    const cachedEvents = this.eventsService.getCachedEvents();
+
+    if (cachedEvents && cachedEvents.length > 0) {
+      // Se o service já tem eventos em cache, usar o cache
+      console.log('Usando eventos do cache:', cachedEvents.length);
+
+      // Resetar loading ANTES de subscrever aos estados
+      this.eventsService.resetLoading();
+
+      // Atualizar dados locais
+      this.events = cachedEvents;
+      this.filteredEvents = this.events;
+      this.isLoading = false;
+      this.error = null;
+
+      // Subscrever aos estados do service DEPOIS de resetar
+      this.subscribeToServiceStates();
+
+      // Forçar renderização imediata usando setTimeout
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      }, 0);
+    } else {
+      // Carregar eventos se não houver cache
+      console.log('Cache vazio, carregando eventos da API');
+
+      // Subscrever aos estados do service
+      this.subscribeToServiceStates();
+
+      // Carregar da API
+      this.loadEvents();
+    }
   }
 
   ngOnDestroy(): void {
@@ -69,22 +133,36 @@ export class EventsPage implements OnInit, OnDestroy {
     const filters = {
       search: this.filters.name,
       eventType: this.filters.eventType,
-      page: this.currentPage,
-      limit: this.eventsPerPage,
     };
 
+    // Resetar currentPage para garantir que sempre começa do zero
+    this.currentPage = 0;
+
+    // append=false para resetar a lista
     this.eventsService
-      .getEvents(filters)
+      .getEvents(filters, this.currentPage, this.eventsPerPage, false)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           this.events = response.events;
           this.totalEvents = response.total;
-          this.applyFilters();
+          this.totalPages = response.pagination.totalPages;
+          this.hasMoreEvents = this.currentPage < response.pagination.totalPages - 1;
+
+          // Aplicar filtros locais apenas se necessário
+          if (this.filters.timeRange) {
+            this.applyFilters();
+          } else {
+            this.filteredEvents = this.events;
+          }
+
+          // Forçar detecção de mudanças
+          this.cdr.detectChanges();
         },
         error: (error) => {
           this.error = 'Erro ao carregar eventos. Tente novamente.';
           console.error('Erro ao carregar eventos:', error);
+          this.cdr.detectChanges();
         },
       });
   }
@@ -108,19 +186,36 @@ export class EventsPage implements OnInit, OnDestroy {
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((searchTerm) => {
         this.filters.name = searchTerm;
-        this.currentPage = 1;
+        this.currentPage = 0; // Corrigido: deve ser 0
         this.loadEvents();
       });
   }
 
   private subscribeToServiceStates(): void {
-    this.eventsService.loading$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((loading: boolean) => (this.isLoading = loading));
+    this.eventsService.loading$.pipe(takeUntil(this.destroy$)).subscribe((loading: boolean) => {
+      console.log('Loading state changed:', loading);
+      this.isLoading = loading;
+      this.cdr.detectChanges();
+    });
 
-    this.eventsService.error$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((error: string | null) => (this.error = error));
+    this.eventsService.error$.pipe(takeUntil(this.destroy$)).subscribe((error: string | null) => {
+      this.error = error;
+      this.cdr.detectChanges();
+    });
+
+    // Subscrever aos eventos para manter sincronização
+    this.eventsService.events$.pipe(takeUntil(this.destroy$)).subscribe((events: ApiEvent[]) => {
+      if (events.length > 0 && this.events.length === 0) {
+        console.log('Events updated from service:', events.length);
+        this.events = events;
+        if (!this.filters.timeRange) {
+          this.filteredEvents = events;
+        } else {
+          this.applyFilters();
+        }
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   /**
@@ -128,21 +223,38 @@ export class EventsPage implements OnInit, OnDestroy {
    */
   applyFilters(): void {
     this.filteredEvents = this.events.filter((event) => {
-      // Filtro por nome (busca no título e descrição)
+      // Filtro por nome (busca no título e descrição) - já tratado pelo backend
       const nameMatch =
         !this.filters.name ||
         event.name.toLowerCase().includes(this.filters.name.toLowerCase()) ||
         event.description.toLowerCase().includes(this.filters.name.toLowerCase());
 
-      // Filtro por tipo de evento
+      // Filtro por tipo de evento - já tratado pelo backend, mas mantém para consistência local
       const typeMatch = !this.filters.eventType || event.eventType === this.filters.eventType;
 
-      // Filtro por horário
+      // Filtro por horário - apenas local (backend não tem esse filtro)
       const timeMatch =
         !this.filters.timeRange || this.matchTimeRange(event.eventDate, this.filters.timeRange);
 
       return nameMatch && typeMatch && timeMatch;
     });
+  }
+
+  /**
+   * Chamado quando o filtro de tipo de evento muda
+   */
+  onEventTypeFilterChange(): void {
+    this.currentPage = 0;
+    this.events = [];
+    this.filteredEvents = [];
+    this.loadEvents();
+  }
+
+  /**
+   * Chamado quando o filtro de horário muda (apenas local)
+   */
+  onTimeRangeFilterChange(): void {
+    this.applyFilters();
   }
 
   /**
@@ -175,7 +287,9 @@ export class EventsPage implements OnInit, OnDestroy {
       timeRange: '',
       eventType: '',
     };
-    this.currentPage = 1;
+    this.currentPage = 0;
+    this.events = []; // Limpar eventos
+    this.filteredEvents = []; // Limpar eventos filtrados
     this.loadEvents();
   }
 
@@ -212,22 +326,114 @@ export class EventsPage implements OnInit, OnDestroy {
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const searchTerm = target.value;
+    this.currentPage = 0; // Reset para primeira página ao buscar
     this.searchSubject.next(searchTerm);
   }
 
   /**
-   * Carrega mais eventos (paginação)
+   * Carrega mais eventos (infinite scroll)
    */
   loadMoreEvents(): void {
+    if (this.isLoadingMore || !this.hasMoreEvents || this.isLoading) {
+      console.log('LoadMoreEvents bloqueado:', {
+        isLoadingMore: this.isLoadingMore,
+        hasMoreEvents: this.hasMoreEvents,
+        isLoading: this.isLoading,
+      });
+      return;
+    }
+
+    console.log('Carregando mais eventos - página:', this.currentPage + 1);
+    this.isLoadingMore = true;
+
+    // Forçar detecção de mudanças para mostrar o loading
+    this.cdr.detectChanges();
+
     this.currentPage++;
-    this.loadEvents();
+
+    const filters = {
+      search: this.filters.name,
+      eventType: this.filters.eventType,
+    };
+
+    // append=true para adicionar à lista existente
+    this.eventsService
+      .getEvents(filters, this.currentPage, this.eventsPerPage, true)
+      .pipe(
+        takeUntil(this.destroy$),
+        // Garantir que isLoadingMore seja resetado mesmo se houver erro
+        finalize(() => {
+          console.log('Finalizando requisição - resetando isLoadingMore');
+          this.isLoadingMore = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (response: EventsResponse) => {
+          console.log('Novos eventos recebidos:', response.events.length);
+          console.log('Resposta completa:', response);
+
+          // Verificar se realmente há eventos novos
+          if (response.events.length === 0) {
+            console.warn('Nenhum evento novo recebido - pode ter chegado ao fim');
+            this.hasMoreEvents = false;
+            return;
+          }
+
+          // Adicionar novos eventos sem duplicatas
+          const newEvents = response.events.filter(
+            (newEvent: ApiEvent) =>
+              !this.events.some((existingEvent) => existingEvent.id === newEvent.id)
+          );
+
+          console.log('Eventos únicos para adicionar:', newEvents.length);
+
+          if (newEvents.length === 0) {
+            console.warn('Todos os eventos já existem na lista - possível duplicação');
+          }
+
+          this.events = [...this.events, ...newEvents];
+          this.totalEvents = response.total;
+          this.totalPages = response.pagination.totalPages;
+          this.hasMoreEvents = this.currentPage < response.pagination.totalPages - 1;
+
+          // Aplicar filtros locais apenas se necessário
+          if (this.filters.timeRange) {
+            this.applyFilters();
+          } else {
+            this.filteredEvents = this.events;
+          }
+
+          console.log('Total de eventos agora:', this.filteredEvents.length);
+          console.log('Tem mais eventos?', this.hasMoreEvents);
+
+          // Forçar detecção de mudanças múltiplas vezes
+          this.cdr.detectChanges();
+
+          // Segunda detecção após um tick
+          setTimeout(() => {
+            this.cdr.detectChanges();
+          }, 0);
+
+          // Terceira detecção para garantir
+          setTimeout(() => {
+            this.cdr.detectChanges();
+            console.log('Renderização concluída');
+          }, 100);
+        },
+        error: (error) => {
+          console.error('Erro ao carregar mais eventos:', error);
+          this.currentPage--; // Reverter página em caso de erro
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   /**
    * Reseta a paginação
    */
   resetPagination(): void {
-    this.currentPage = 1;
+    this.currentPage = 0;
   }
 
   /**
@@ -266,8 +472,7 @@ export class EventsPage implements OnInit, OnDestroy {
    * Navega para os detalhes do evento
    */
   navigateToEvent(eventId: number): void {
-    // TODO: Implementar navegação para página de detalhes
-    console.log('Navegar para evento:', eventId);
+    this.router.navigate(['/event', eventId]);
   }
 
   /**
@@ -335,14 +540,47 @@ export class EventsPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Obtém as iniciais do nome do usuário
+   * Carrega os dados do usuário logado
+   * Primeiro tenta carregar do cache (síncrono), depois atualiza do backend (assíncrono)
+   */
+  loadUserData(): void {
+    // Carregar do cache imediatamente (para evitar delay na UI)
+    const cachedUser = this.authService.getCurrentUser();
+    if (cachedUser) {
+      this.user = cachedUser;
+      this.cdr.detectChanges();
+    }
+
+    // Subscrever ao observable para receber atualizações
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
+          if (user) {
+            console.log('Dados do usuário atualizados:', user);
+            this.user = user;
+            this.cdr.detectChanges();
+          } else {
+            console.warn('Nenhum usuário logado encontrado');
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao carregar dados do usuário:', error);
+        }
+      });
+
+    // Se estiver autenticado mas não tiver cache, buscar do backend
+    if (!cachedUser && this.authService.isAuthenticated()) {
+      console.log('Buscando dados do usuário do backend...');
+      this.authService.fetchCurrentUser().subscribe();
+    }
+  }
+
+  /**
+   * Retorna as iniciais do nome do usuário para exibir no avatar
    */
   getUserInitials(): string {
-    return this.user.name
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase())
-      .slice(0, 2) // Máximo 2 iniciais
-      .join('');
+    return this.authService.getUserInitials(this.user.name);
   }
 
   /**
@@ -360,6 +598,14 @@ export class EventsPage implements OnInit, OnDestroy {
   }
 
   /**
+   * Faz logout do usuário
+   */
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  /**
    * Fecha o dropdown ao clicar fora
    */
   @HostListener('document:click', ['$event'])
@@ -367,6 +613,34 @@ export class EventsPage implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('.user-avatar')) {
       this.isUserDropdownOpen = false;
+    }
+  }
+
+  /**
+   * Detecta scroll para carregar mais eventos (infinite scroll)
+   */
+  @HostListener('window:scroll')
+  onScroll(): void {
+    // Verificar se está no browser
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    if (this.isLoadingMore || !this.hasMoreEvents || this.isLoading) {
+      return;
+    }
+
+    const scrollPosition = window.pageYOffset + window.innerHeight;
+    const pageHeight = document.documentElement.scrollHeight;
+
+    // Quando chegar a 80% da página, carrega mais eventos
+    const threshold = pageHeight * 0.8;
+
+    if (scrollPosition >= threshold) {
+      // Executar dentro da zona do Angular para garantir detecção de mudanças
+      this.ngZone.run(() => {
+        this.loadMoreEvents();
+      });
     }
   }
 }

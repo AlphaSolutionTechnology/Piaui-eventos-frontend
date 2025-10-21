@@ -128,7 +128,7 @@
           </svg>
           Configurações
         </a>
-        <a href="#" class="dropdown-item logout" (click)="closeUserDropdown()">
+        <a href="#" class="dropdown-item logout" (click)="logout(); $event.preventDefault()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path
               d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
@@ -162,13 +162,11 @@
               stroke-linecap="round"
             />
           </svg>
-          Filtrar Eventos
-          <span
-            class="active-filters-badge text-badge"
-            *ngIf="hasActiveFilters() && !isFiltersOpen"
-          >
+          Filtrar Eventos @if (hasActiveFilters() && !isFiltersOpen) {
+          <span class="active-filters-badge text-badge">
             {{ getActiveFiltersCount() }}
           </span>
+          }
         </h4>
         <svg
           class="toggle-arrow"
@@ -203,7 +201,7 @@
             <select
               id="timeFilter"
               [(ngModel)]="filters.timeRange"
-              (change)="applyFilters()"
+              (change)="onTimeRangeFilterChange()"
               class="filter-select"
             >
               <option value="">Todos os horários</option>
@@ -219,7 +217,7 @@
             <select
               id="eventTypeFilter"
               [(ngModel)]="filters.eventType"
-              (change)="applyFilters()"
+              (change)="onEventTypeFilterChange()"
               class="filter-select"
             >
               <option value="">Todos os tipos</option>
@@ -349,5 +347,24 @@
       </article>
       }
     </section>
+
+    <!-- Indicador de Loading para Infinite Scroll -->
+    @if (isLoadingMore) {
+    <div class="loading-more-container">
+      <div class="loading-spinner"></div>
+      <p>Carregando mais eventos...</p>
+    </div>
+    }
+
+    <!-- Mensagem quando não há mais eventos -->
+    @if (!hasMoreEvents && filteredEvents.length > 0 && !isLoading) {
+    <div class="end-of-list">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+        <path d="M8 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <p>Você viu todos os eventos disponíveis!</p>
+    </div>
+    }
   </main>
 </div>
