@@ -552,22 +552,20 @@ export class EventsPage implements OnInit, OnDestroy {
     }
 
     // Subscrever ao observable para receber atualizações
-    this.authService.currentUser$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (user) => {
-          if (user) {
-            console.log('Dados do usuário atualizados:', user);
-            this.user = user;
-            this.cdr.detectChanges();
-          } else {
-            console.warn('Nenhum usuário logado encontrado');
-          }
-        },
-        error: (error) => {
-          console.error('Erro ao carregar dados do usuário:', error);
+    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (user) => {
+        if (user) {
+          console.log('Dados do usuário atualizados:', user);
+          this.user = user;
+          this.cdr.detectChanges();
+        } else {
+          console.warn('Nenhum usuário logado encontrado');
         }
-      });
+      },
+      error: (error) => {
+        console.error('Erro ao carregar dados do usuário:', error);
+      },
+    });
 
     // Se estiver autenticado mas não tiver cache, buscar do backend
     if (!cachedUser && this.authService.isAuthenticated()) {

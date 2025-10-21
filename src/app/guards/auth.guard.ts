@@ -17,7 +17,7 @@ export const authGuard: CanActivateFn = (route, state) => {
         error: () => {
           // Se falhar ao buscar usuário, redirecionar para login
           router.navigate(['/login']);
-        }
+        },
       });
     }
     return true;

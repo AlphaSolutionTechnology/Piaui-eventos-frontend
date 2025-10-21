@@ -17,11 +17,12 @@ this.authService.login(email, password).subscribe({
     // Token JWT salvo automaticamente no localStorage
     // Dados do usuário buscados automaticamente via /api/user/me
     this.router.navigate(['/events']);
-  }
+  },
 });
 ```
 
 **O que acontece:**
+
 1. ✅ Requisição POST para `/api/auth/login`
 2. ✅ Token JWT salvo no `localStorage` com chave `authToken`
 3. ✅ Chamada automática para `/api/user/me` para buscar dados completos
@@ -34,11 +35,14 @@ this.authService.login(email, password).subscribe({
 
 ```typescript
 // AuthService.fetchCurrentUser()
-GET /api/user/me
-Headers: { credentials: 'include' }
+GET / api / user / me;
+Headers: {
+  credentials: 'include';
+}
 ```
 
 **Resposta esperada:**
+
 ```json
 {
   "id": 15,
@@ -53,6 +57,7 @@ Headers: { credentials: 'include' }
 ```
 
 **Mapeamento para Frontend:**
+
 ```typescript
 {
   id: 15,
@@ -71,12 +76,12 @@ Headers: { credentials: 'include' }
 
 O sistema traduz automaticamente as roles do backend para português:
 
-| Backend | Frontend |
-|---------|----------|
-| USER | Participante |
-| ADMIN | Administrador |
-| MODERATOR | Moderador |
-| ORGANIZER | Organizador |
+| Backend   | Frontend      |
+| --------- | ------------- |
+| USER      | Participante  |
+| ADMIN     | Administrador |
+| MODERATOR | Moderador     |
+| ORGANIZER | Organizador   |
 
 ```typescript
 // AuthService.translateRole()
@@ -114,7 +119,7 @@ export class EventsPage {
     }
 
     // 2. Subscreve para receber atualizações
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe((user) => {
       if (user) this.user = user;
     });
 
@@ -132,11 +137,9 @@ export class EventsPage {
 <!-- Avatar com iniciais ou foto -->
 <div class="avatar-container">
   @if (user.avatar) {
-    <img [src]="user.avatar" [alt]="user.name" />
+  <img [src]="user.avatar" [alt]="user.name" />
   } @else {
-    <div class="avatar-initials">
-      {{ getUserInitials() }}
-    </div>
+  <div class="avatar-initials">{{ getUserInitials() }}</div>
   }
 </div>
 
@@ -166,8 +169,8 @@ export const routes: Routes = [
   {
     path: 'events',
     component: EventsPage,
-    canActivate: [authGuard]  // ✅ Requer autenticação
-  }
+    canActivate: [authGuard], // ✅ Requer autenticação
+  },
 ];
 ```
 
@@ -203,6 +206,7 @@ this.authService.currentUser$.subscribe(user => {
 ```
 
 **Vantagens:**
+
 - ✅ Estado reativo e sempre atualizado
 - ✅ Múltiplos componentes podem observar o mesmo usuário
 - ✅ Sincronização automática ao buscar do backend
@@ -261,6 +265,7 @@ isAdmin(): boolean
 - **Dados do Usuário:** `localStorage.setItem('user', JSON.stringify(user))`
 
 ⚠️ **Importante:** Em produção, considere usar:
+
 - **httpOnly cookies** para tokens (mais seguro)
 - **SessionStorage** para dados temporários
 - **Criptografia** para dados sensíveis
@@ -288,7 +293,7 @@ Todas as requisições incluem:
 
 ```typescript
 {
-  withCredentials: true  // Envia cookies automaticamente
+  withCredentials: true; // Envia cookies automaticamente
 }
 ```
 
@@ -299,12 +304,13 @@ Todas as requisições incluem:
 O sistema gera iniciais automaticamente:
 
 ```typescript
-getUserInitials("João Silva") // → "JS"
-getUserInitials("Maria") // → "M"
-getUserInitials("José da Silva Santos") // → "JS"
+getUserInitials('João Silva'); // → "JS"
+getUserInitials('Maria'); // → "M"
+getUserInitials('José da Silva Santos'); // → "JS"
 ```
 
 **Regras:**
+
 - Nome único: primeira letra
 - Múltiplos nomes: primeira + última letra
 - Sempre em maiúsculas
@@ -335,13 +341,16 @@ getUserInitials("José da Silva Santos") // → "JS"
 ## 🚀 Próximos Passos
 
 1. **Implementar avatar com upload de foto**
+
    - Endpoint: `POST /api/user/avatar`
    - Integrar com User.avatar
 
 2. **Refresh token automático**
+
    - Interceptor HTTP para renovar token expirado
 
 3. **Perfil do usuário editável**
+
    - Página de perfil com formulário
    - Endpoint: `PUT /api/user/me`
 

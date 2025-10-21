@@ -43,17 +43,14 @@ export interface User {
 export class AuthService {
   private apiUrl = environment.API_URL;
   private isBrowser: boolean;
-  
+
   // Subject para armazenar o estado do usuário atual
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
+  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
     this.isBrowser = isPlatformBrowser(this.platformId);
-    
+
     // Tentar carregar usuário do localStorage ao inicializar (apenas no browser)
     if (this.isBrowser) {
       this.loadUserFromLocalStorage();
@@ -82,43 +79,45 @@ export class AuthService {
    * Este método deve ser chamado após o login ou ao inicializar o app
    */
   fetchCurrentUser(): Observable<User | null> {
-    return this.http.get<UserMeResponse>(`${this.apiUrl}/user/me`, {
-      withCredentials: true
-    }).pipe(
-      map((response: UserMeResponse): User => {
-        console.log('Dados do usuário recebidos do backend:', response);
-        
-        const user: User = {
-          id: response.id,
-          name: response.name,
-          email: response.email,
-          phoneNumber: response.phoneNumber,
-          role: this.translateRole(response.role.name),
-          roleId: response.role.id,
-          avatar: '' // Backend não retorna avatar, pode ser implementado depois
-        };
-
-        // Atualizar BehaviorSubject
-        this.currentUserSubject.next(user);
-        
-        // Salvar no localStorage para cache (apenas no browser)
-        if (this.isBrowser) {
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-        
-        return user;
-      }),
-      catchError((error) => {
-        console.error('Erro ao buscar dados do usuário:', error);
-        
-        if (error.status === 401) {
-          console.warn('Usuário não autenticado - limpando dados');
-          this.clearUserData();
-        }
-        
-        return of(null);
+    return this.http
+      .get<UserMeResponse>(`${this.apiUrl}/user/me`, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        map((response: UserMeResponse): User => {
+          console.log('Dados do usuário recebidos do backend:', response);
+
+          const user: User = {
+            id: response.id,
+            name: response.name,
+            email: response.email,
+            phoneNumber: response.phoneNumber,
+            role: this.translateRole(response.role.name),
+            roleId: response.role.id,
+            avatar: '', // Backend não retorna avatar, pode ser implementado depois
+          };
+
+          // Atualizar BehaviorSubject
+          this.currentUserSubject.next(user);
+
+          // Salvar no localStorage para cache (apenas no browser)
+          if (this.isBrowser) {
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+
+          return user;
+        }),
+        catchError((error) => {
+          console.error('Erro ao buscar dados do usuário:', error);
+
+          if (error.status === 401) {
+            console.warn('Usuário não autenticado - limpando dados');
+            this.clearUserData();
+          }
+
+          return of(null);
+        })
+      );
   }
 
   /**
@@ -126,12 +125,12 @@ export class AuthService {
    */
   private translateRole(roleName: string): string {
     const roleMap: { [key: string]: string } = {
-      'USER': 'Participante',
-      'ADMIN': 'Administrador',
-      'MODERATOR': 'Moderador',
-      'ORGANIZER': 'Organizador'
+      USER: 'Participante',
+      ADMIN: 'Administrador',
+      MODERATOR: 'Moderador',
+      ORGANIZER: 'Organizador',
     };
-    
+
     return roleMap[roleName] || 'Participante';
   }
 
@@ -150,7 +149,7 @@ export class AuthService {
       if (userJson) {
         const user = JSON.parse(userJson) as User;
         this.currentUserSubject.next(user);
-        
+
         // Tentar atualizar com dados do backend (assíncrono)
         if (this.isAuthenticated()) {
           this.fetchCurrentUser().subscribe();
@@ -191,10 +190,9 @@ export class AuthService {
   hasRole(roleName: string): boolean {
     const user = this.getCurrentUser();
     if (!user) return false;
-    
+
     // Comparar com role em inglês ou português
-    return user.role === roleName || 
-           user.role === this.translateRole(roleName);
+    return user.role === roleName || user.role === this.translateRole(roleName);
   }
 
   /**
@@ -227,12 +225,12 @@ export class AuthService {
    */
   getUserInitials(name: string): string {
     if (!name) return 'U';
-    
+
     const names = name.trim().split(' ');
     if (names.length === 1) {
       return names[0].charAt(0).toUpperCase();
     }
-    
+
     return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
   }
 }
