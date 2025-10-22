@@ -1,3 +1,4 @@
+import { environment } from './../../../enviroment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
@@ -16,7 +17,7 @@ export interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = `http://localhost:8080/api/auth/login`;
+  private apiUrl =   environment.API_URL;
 
   private refreshUrl = 'http://localhost:8080/api/auth/refresh';
 
@@ -24,7 +25,7 @@ export class AuthService {
 
   login(email: string, password: string): Observable<AuthResponse> {
     const credentials = { username: email, password };
-    return this.http.post<AuthResponse>(this.apiUrl, credentials);
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials);
   }
 
   //funciona , porém seria melhor dentro de um 'httpinterceptor'
