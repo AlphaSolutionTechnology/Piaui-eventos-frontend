@@ -2,6 +2,8 @@ import { environment } from './../../../enviroment';
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { response } from 'express';
 import { BehaviorSubject, Observable, tap, catchError, of, map } from 'rxjs';
 
 // Interface para a resposta esperada da API de login
@@ -41,8 +43,7 @@ export interface User {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = environment.API_URL;
-  private isBrowser: boolean;
+  private apiUrl =   environment.API_URL;
 
   // Subject para armazenar o estado do usuário atual
   private currentUserSubject = new BehaviorSubject<User | null>(null);
@@ -167,28 +168,19 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  /**
-   * Recupera o token de autenticação
-   */
-  getToken(): string | null {
-    if (!this.isBrowser) {
-      return null;
-    }
-    return localStorage.getItem('authToken');
-  }
 
   /**
    * Verifica se o usuário está autenticado
-   */
-  isAuthenticated(): boolean {
-    return !!this.getToken();
+  */
+ isAuthenticated(): boolean {
+   return !!this.getToken();
   }
 
   /**
    * Verifica se o usuário tem uma role específica
-   */
-  hasRole(roleName: string): boolean {
-    const user = this.getCurrentUser();
+  */
+ hasRole(roleName: string): boolean {
+   const user = this.getCurrentUser();
     if (!user) return false;
 
     // Comparar com role em inglês ou português
@@ -197,25 +189,25 @@ export class AuthService {
 
   /**
    * Verifica se o usuário é admin
-   */
-  isAdmin(): boolean {
-    return this.hasRole('ADMIN') || this.hasRole('Administrador');
+  */
+ isAdmin(): boolean {
+   return this.hasRole('ADMIN') || this.hasRole('Administrador');
   }
 
   /**
    * Faz logout removendo os dados do localStorage e limpando o subject
-   */
-  logout(): void {
+  */
+ logout(): void {
     this.clearUserData();
   }
 
   /**
    * Limpa todos os dados do usuário
-   */
-  private clearUserData(): void {
-    if (this.isBrowser) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+  */
+ private clearUserData(): void {
+   if (this.isBrowser) {
+     localStorage.removeItem('authToken');
+     localStorage.removeItem('user');
     }
     this.currentUserSubject.next(null);
   }
@@ -232,5 +224,30 @@ export class AuthService {
     }
 
     return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  }
+
+  //funciona , porém seria melhor dentro de um 'httpinterceptor'
+  refreshToken(): Observable<any> {
+    const token = this.getToken();
+    return this.http.post<any>(this.refreshUrl, { token }).pipe(
+      tap((response) => {
+        this.setToken(response.token);
+      })
+    );
+  }
+
+  /**
+   * Recupera o token de autenticação
+   */
+  getToken(): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+    return localStorage.getItem('authToken');
+  }
+
+
+  setToken(token: string) {
+    localStorage.setItem('accessToken', token);
   }
 }
