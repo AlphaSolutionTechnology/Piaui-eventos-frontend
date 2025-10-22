@@ -145,8 +145,8 @@
     </div>
   </header>
 
-  <!-- Filtros -->
-  <section class="filters-section">
+  <!-- Filtros - DESABILITADO TEMPORARIAMENTE -->
+  <!-- <section class="filters-section">
     <div class="filters-container">
       <div
         class="filters-header"
@@ -182,7 +182,6 @@
 
       <div class="filters-content" [class.open]="isFiltersOpen">
         <div class="filters-grid">
-          <!-- Filtro por Nome -->
           <div class="filter-group">
             <label for="nameFilter">Por Nome</label>
             <input
@@ -195,7 +194,6 @@
             />
           </div>
 
-          <!-- Filtro por Horário -->
           <div class="filter-group">
             <label for="timeFilter">Por Horário</label>
             <select
@@ -211,7 +209,6 @@
             </select>
           </div>
 
-          <!-- Filtro por Tipo de Evento -->
           <div class="filter-group">
             <label for="eventTypeFilter">Por Tipo</label>
             <select
@@ -227,7 +224,6 @@
             </select>
           </div>
 
-          <!-- Botão Limpar Filtros -->
           <div class="filter-group">
             <button
               (click)="clearFilters()"
@@ -247,7 +243,6 @@
           </div>
         </div>
 
-        <!-- Contador de Resultados -->
         <div class="results-counter">
           @if (isLoading) {
           <span class="loading-text">Carregando eventos...</span>
@@ -257,7 +252,7 @@
         </div>
       </div>
     </div>
-  </section>
+  </section> -->
 
   <main class="grid-wrap">
     <!-- Indicador de Carregamento -->

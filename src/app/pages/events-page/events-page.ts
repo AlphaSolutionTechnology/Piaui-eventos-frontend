@@ -135,8 +135,7 @@ export class EventsPage implements OnInit, OnDestroy {
       eventType: this.filters.eventType,
     };
 
-    // Resetar currentPage para garantir que sempre começa do zero
-    this.currentPage = 0;
+    console.log('Carregando eventos com filtros:', filters, 'página:', this.currentPage);
 
     // append=false para resetar a lista
     this.eventsService
@@ -144,6 +143,7 @@ export class EventsPage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('Eventos carregados:', response.events.length, 'de', response.total);
           this.events = response.events;
           this.totalEvents = response.total;
           this.totalPages = response.pagination.totalPages;
@@ -155,6 +155,8 @@ export class EventsPage implements OnInit, OnDestroy {
           } else {
             this.filteredEvents = this.events;
           }
+
+          console.log('Eventos filtrados:', this.filteredEvents.length);
 
           // Forçar detecção de mudanças
           this.cdr.detectChanges();
@@ -185,8 +187,12 @@ export class EventsPage implements OnInit, OnDestroy {
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((searchTerm) => {
+        console.log('Executando busca com debounce:', searchTerm);
         this.filters.name = searchTerm;
-        this.currentPage = 0; // Corrigido: deve ser 0
+        this.currentPage = 0;
+        this.events = [];
+        this.filteredEvents = [];
+        this.hasMoreEvents = true;
         this.loadEvents();
       });
   }
@@ -223,13 +229,13 @@ export class EventsPage implements OnInit, OnDestroy {
    */
   applyFilters(): void {
     this.filteredEvents = this.events.filter((event) => {
-      // Filtro por nome (busca no título e descrição) - já tratado pelo backend
+      // Filtro por nome (busca no título e descrição)
       const nameMatch =
         !this.filters.name ||
         event.name.toLowerCase().includes(this.filters.name.toLowerCase()) ||
         event.description.toLowerCase().includes(this.filters.name.toLowerCase());
 
-      // Filtro por tipo de evento - já tratado pelo backend, mas mantém para consistência local
+      // Filtro por tipo de evento
       const typeMatch = !this.filters.eventType || event.eventType === this.filters.eventType;
 
       // Filtro por horário - apenas local (backend não tem esse filtro)
@@ -238,15 +244,20 @@ export class EventsPage implements OnInit, OnDestroy {
 
       return nameMatch && typeMatch && timeMatch;
     });
+
+    // Forçar detecção de mudanças após aplicar filtros
+    this.cdr.detectChanges();
   }
 
   /**
    * Chamado quando o filtro de tipo de evento muda
    */
   onEventTypeFilterChange(): void {
+    console.log('Filtro de tipo mudou para:', this.filters.eventType);
     this.currentPage = 0;
     this.events = [];
     this.filteredEvents = [];
+    this.hasMoreEvents = true;
     this.loadEvents();
   }
 
@@ -254,7 +265,9 @@ export class EventsPage implements OnInit, OnDestroy {
    * Chamado quando o filtro de horário muda (apenas local)
    */
   onTimeRangeFilterChange(): void {
+    console.log('Filtro de horário mudou para:', this.filters.timeRange);
     this.applyFilters();
+    this.cdr.detectChanges();
   }
 
   /**
@@ -282,14 +295,16 @@ export class EventsPage implements OnInit, OnDestroy {
    * Limpa todos os filtros
    */
   clearFilters(): void {
+    console.log('Limpando filtros...');
     this.filters = {
       name: '',
       timeRange: '',
       eventType: '',
     };
     this.currentPage = 0;
-    this.events = []; // Limpar eventos
-    this.filteredEvents = []; // Limpar eventos filtrados
+    this.events = [];
+    this.filteredEvents = [];
+    this.hasMoreEvents = true;
     this.loadEvents();
   }
 
@@ -326,6 +341,7 @@ export class EventsPage implements OnInit, OnDestroy {
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const searchTerm = target.value;
+    console.log('Busca digitada:', searchTerm);
     this.currentPage = 0; // Reset para primeira página ao buscar
     this.searchSubject.next(searchTerm);
   }
