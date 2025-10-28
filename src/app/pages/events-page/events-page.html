@@ -48,13 +48,13 @@
       </svg>
       <span class="brand-text text-brand">EventHub</span>
     </div>
-    <nav class="nav">
-      <dark-mode-toggle></dark-mode-toggle>
-    </nav>
+    <nav class="nav"></nav>
 
     <!-- Botão de Login (quando não autenticado) -->
     @if (!isAuthenticated()) {
-    <button class="login-button" (click)="navigateToLogin()">
+    <div class="header-right-section">
+      <dark-mode-toggle></dark-mode-toggle>
+      <button class="login-button" (click)="navigateToLogin()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path
           d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
@@ -83,11 +83,14 @@
       </svg>
       Fazer Login
     </button>
+    </div>
     }
 
     <!-- Card do Usuário (quando autenticado) -->
     @if (isAuthenticated()) {
-    <div class="user-avatar" (click)="toggleUserDropdown()">
+    <div class="header-right-section">
+      <dark-mode-toggle></dark-mode-toggle>
+      <div class="user-avatar" (click)="toggleUserDropdown()">
       <div class="avatar-container">
         @if (user && user.avatar) {
         <img [src]="user.avatar" [alt]="user.name" class="avatar-image" />
@@ -99,8 +102,8 @@
         <div class="avatar-status"></div>
       </div>
       <div class="user-info">
-        <span class="user-name text-user-name">{{ user?.name }}</span>
-        <span class="user-role text-micro">{{ user?.role }}</span>
+        <span class="user-name text-user-name">{{ user.name }}</span>
+        <span class="user-role text-micro">{{ user.role }}</span>
       </div>
       <svg
         class="dropdown-arrow"
@@ -181,6 +184,7 @@
         </a>
       </div>
       }
+    </div>
     </div>
     }
   </header>

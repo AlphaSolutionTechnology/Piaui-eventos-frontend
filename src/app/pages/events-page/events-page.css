@@ -94,6 +94,14 @@
   max-width: 400px;
 }
 
+/* Header Right Section - Agrupa Dark Mode e User Avatar/Login */
+.header-right-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
 .nav a {
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
