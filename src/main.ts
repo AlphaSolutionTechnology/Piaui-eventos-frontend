@@ -1,6 +1,6 @@
+import 'zone.js'; // Importa Zone.js para detecção de mudanças
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
 import { App } from './app/app';
+import { appConfig } from './app/app.config';
 
-bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+bootstrapApplication(App, appConfig).catch((err) => console.error(err));

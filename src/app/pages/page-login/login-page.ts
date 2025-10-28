@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, PLATFORM_ID, HostBinding, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
 import { AuthService, AuthResponse } from '../../services/auth';
+import { DarkModeToggleComponent } from '../../components/dark-mode-toggle/dark-mode-toggle';
 
 interface LoginForm {
   email: string;
@@ -15,15 +15,21 @@ interface LoginForm {
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, DarkModeToggleComponent],
   templateUrl: './login-page.html',
   styleUrls: ['./login-page.css'],
+  host: {
+    '[class.dark-mode]': 'isDarkMode',
+  },
 })
-export class LoginPage {
+export class LoginPage implements OnInit, OnDestroy {
+  @HostBinding('class.dark-mode') isDarkMode = false;
   isLoading = false;
   showError = false;
   errorMessage = '';
   showPassword = false;
+  private isBrowser: boolean;
+  private observer: MutationObserver | null = null;
 
   loginForm: LoginForm = {
     email: '',
@@ -31,7 +37,48 @@ export class LoginPage {
     rememberMe: false,
   };
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  ngOnInit(): void {
+    if (this.isBrowser) {
+      // Verificar o tema inicial
+      const savedTheme = localStorage.getItem('theme');
+      this.isDarkMode = savedTheme === 'dark';
+      console.log('🎨 [LOGIN PAGE] Tema inicial:', savedTheme, 'isDarkMode:', this.isDarkMode);
+
+      // Carregar email salvo se "Lembrar de mim" estiver ativo
+      this.loadRememberedEmail();
+
+      // Observar mudanças na classe dark-mode do body
+      this.observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            const newValue = document.body.classList.contains('dark-mode');
+            console.log('🎨 [LOGIN PAGE] Body mudou! dark-mode presente:', newValue);
+            this.isDarkMode = newValue;
+            console.log('🎨 [LOGIN PAGE] isDarkMode atualizado para:', this.isDarkMode);
+          }
+        });
+      });
+
+      this.observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  }
 
   validateForm(): boolean {
     if (!this.loginForm.email.trim()) {
@@ -76,7 +123,7 @@ export class LoginPage {
     }
 
     this.isLoading = true;
-    this.showError = false; // Reseta o erro antes de tentar novamente
+    this.showError = false;
 
     this.authService
       .login(this.loginForm.email, this.loginForm.password)
@@ -86,13 +133,11 @@ export class LoginPage {
         })
       )
       .subscribe({
-        // Callback para SUCESSO na chamada
         next: (response: AuthResponse) => {
-          // O token já foi salvo no AuthService.login()
-          // Os dados do usuário serão buscados automaticamente via /api/user/me
-          console.log('Login bem-sucedido, redirecionando...');
+          // Salvar email se "Lembrar de mim" estiver marcado
+          this.saveRememberMePreference();
 
-          // Navega para a página de eventos após o login
+          // Dados do usuário já foram carregados pelo AuthService
           this.router.navigate(['/events']);
         },
         error: (err) => {
@@ -100,6 +145,41 @@ export class LoginPage {
           this.showErrorMessage(message);
         },
       });
+  }
+
+  /**
+   * Carrega o email salvo se "Lembrar de mim" estiver ativo
+   */
+  private loadRememberedEmail(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      this.loginForm.email = rememberedEmail;
+      this.loginForm.rememberMe = true;
+      console.log('📧 Email lembrado carregado:', rememberedEmail);
+    }
+  }
+
+  /**
+   * Salva ou remove o email baseado na preferência "Lembrar de mim"
+   */
+  private saveRememberMePreference(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    if (this.loginForm.rememberMe) {
+      // Salvar email para próximo login
+      localStorage.setItem('rememberedEmail', this.loginForm.email);
+      console.log('✅ Email salvo para lembrar:', this.loginForm.email);
+    } else {
+      // Remover email salvo
+      localStorage.removeItem('rememberedEmail');
+      console.log('🗑️ Email removido (não lembrar)');
+    }
   }
 
   navigateToRegister() {

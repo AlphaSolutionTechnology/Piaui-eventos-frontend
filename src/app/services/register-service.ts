@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../enviroment';
 
-// Interface baseada no UserResponseDTO do backend
 export interface UserResponse {
   id: number;
   name: string;

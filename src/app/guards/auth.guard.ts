@@ -24,7 +24,6 @@ export const authGuard: CanActivateFn = (route, state) => {
   }
 
   // Não autenticado - redirecionar para login
-  console.warn('Acesso negado - redirecionando para login');
   router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
   return false;
 };
@@ -44,7 +43,6 @@ export const roleGuard = (requiredRole: string): CanActivateFn => {
     }
 
     if (!authService.hasRole(requiredRole)) {
-      console.warn(`Acesso negado - role ${requiredRole} requerida`);
       router.navigate(['/unauthorized']);
       return false;
     }

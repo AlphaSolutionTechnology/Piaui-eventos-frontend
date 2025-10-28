@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -22,8 +22,14 @@ interface RegisterForm {
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './register.html',
   styleUrls: ['./register.css'],
+  host: {
+    '[class.dark-mode]': 'isDarkModeActive',
+  },
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
+  @HostBinding('class.dark-mode') isDarkModeActive = false;
+  private darkModeObserver: MutationObserver | null = null;
+
   isLoading = false;
   showSuccess = false;
   showError = false;
@@ -46,6 +52,35 @@ export class RegisterComponent {
   };
 
   constructor(private registerService: RegisterService, private router: Router) {}
+
+  ngOnInit() {
+    this.observeDarkMode();
+  }
+
+  ngOnDestroy() {
+    if (this.darkModeObserver) {
+      this.darkModeObserver.disconnect();
+    }
+  }
+
+  private observeDarkMode() {
+    // Verifica se o dark mode já está ativo
+    this.isDarkModeActive = document.documentElement.classList.contains('dark-mode');
+
+    // Observa mudanças na classe dark-mode no elemento html
+    this.darkModeObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          this.isDarkModeActive = document.documentElement.classList.contains('dark-mode');
+        }
+      });
+    });
+
+    this.darkModeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
 
   nextStep() {
     if (this.validateCurrentStep()) {
@@ -236,6 +271,10 @@ export class RegisterComponent {
 
   navigateToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  navigateToEvents() {
+    this.router.navigate(['/events']);
   }
 
   goBack() {

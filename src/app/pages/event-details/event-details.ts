@@ -1,67 +1,143 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { Component, OnInit, OnDestroy, PLATFORM_ID, inject, HostBinding } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import {
+  EventDetailService,
+  EventDetailResponse,
+  EventLocation,
+} from '../../services/EventDetail/event-detail-service';
+import { AppHeader } from '../../components/app-header/app-header';
+import { AuthService } from '../../services/auth';
 
 @Component({
   standalone: true,
   selector: 'event-details',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterModule, AppHeader],
   templateUrl: './event-details.html',
   styleUrl: './event-details.css',
+  host: {
+    '[class.dark-mode]': 'isDarkModeActive',
+  },
 })
-export class EventDetailsPage implements OnInit {
-  eventId: string | null = null;
+export class EventDetailsPage implements OnInit, OnDestroy {
+  @HostBinding('class.dark-mode') isDarkModeActive = false;
+  private darkModeObserver: MutationObserver | null = null;
 
-  // Dados mockados do evento
-  event = {
-    id: 1,
-    tag: '046',
-    title: 'Festival de Música',
-    time: '19:00',
-    date: '15 de Outubro, 2025',
-    location: 'Centro de Convenções - Teresina, PI',
-    desc: 'Uma noite inesquecível com os melhores artistas nacionais e internacionais. Prepare-se para uma experiência musical única que ficará para sempre na sua memória.',
-    longDescription:
-      'O Festival de Música 2025 trará para Teresina uma seleção especial dos melhores artistas do cenário nacional e internacional. Com três palcos simultâneos, food trucks, área VIP e muito mais. Este evento marca o calendário cultural da cidade e promete ser o maior festival musical do Piauí.',
-    imageUrl: 'assets/events/evento-exemplo.svg',
-    bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    organizer: 'EventHub Produções',
-    price: 'R$ 120,00',
-    capacity: 2000,
-    registered: 1456,
-    category: 'Música & Shows',
-    features: [
-      'Três palcos simultâneos',
-      'Food trucks variados',
-      'Área VIP exclusiva',
-      'Estacionamento gratuito',
-      'Segurança 24h',
-    ],
-    artists: ['Banda Nacional A', 'Artista Internacional B', 'DJ Local C', 'Grupo Regional D'],
-  };
+  private eventdetailservice = inject(EventDetailService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
-  constructor(private route: ActivatedRoute) {}
+  event: EventDetailResponse | null = null;
+  eventlocation: EventLocation | null = null;
+  isLoading = true;
+  error: string | null = null;
+  showContent = false;
+  isBrowser: boolean;
+  renderKey = 0;
+  showLoginModal = false;
+
+  constructor() {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit() {
-    this.eventId = this.route.snapshot.paramMap.get('id');
-    // Aqui você carregaria os dados reais do evento baseado no ID
+    // Carrega dados apenas no browser
+    if (this.isBrowser) {
+      // Observa mudanças no dark mode
+      this.observeDarkMode();
+
+      // Usar setTimeout para garantir que está após o ciclo de hidratação
+      setTimeout(() => {
+        this.loadEventData();
+      }, 0);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.darkModeObserver) {
+      this.darkModeObserver.disconnect();
+    }
+  }
+
+  private observeDarkMode() {
+    // Verifica se o dark mode já está ativo
+    this.isDarkModeActive = document.documentElement.classList.contains('dark-mode');
+
+    // Observa mudanças na classe dark-mode no elemento html
+    this.darkModeObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          this.isDarkModeActive = document.documentElement.classList.contains('dark-mode');
+        }
+      });
+    });
+
+    this.darkModeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
+
+  private loadEventData() {
+    const eventId = Number(this.route.snapshot.paramMap.get('id'));
+
+    this.eventdetailservice.getEventDetails(eventId).subscribe({
+      next: (data: EventDetailResponse) => {
+        this.event = data;
+        this.eventlocation = data.eventLocation;
+        this.isLoading = false;
+        this.showContent = true;
+        this.renderKey++;
+      },
+      error: (error) => {
+        this.error = 'Erro ao carregar evento. Tente novamente.';
+        this.isLoading = false;
+        this.showContent = false;
+        this.renderKey++;
+      },
+    });
   }
 
   shareEvent() {
     if (navigator.share) {
       navigator.share({
-        title: this.event.title,
-        text: this.event.desc,
+        title: this.event?.name,
+        text: this.event?.description,
         url: window.location.href,
       });
     } else {
-      // Fallback para copiar URL
       navigator.clipboard.writeText(window.location.href);
-      // Mostrar feedback visual
     }
   }
 
   toggleFavorite() {
     // Implementar lógica de favoritos
+  }
+
+  handleRegisterClick() {
+    // Verifica se o usuário está autenticado
+    if (this.authService.isAuthenticated()) {
+      // Se estiver autenticado, redireciona para a página de inscrição
+      this.router.navigate(['/event', this.event?.id, 'register']);
+    } else {
+      // Se não estiver autenticado, mostra o modal
+      this.showLoginModal = true;
+    }
+  }
+
+  closeLoginModal() {
+    this.showLoginModal = false;
+  }
+
+  goToLogin() {
+    this.showLoginModal = false;
+    this.router.navigate(['/login']);
+  }
+
+  goToRegister() {
+    this.showLoginModal = false;
+    this.router.navigate(['/register']);
   }
 }

@@ -135,3 +135,21 @@ h4 {
   font-weight: var(--text-badge-weight);
   letter-spacing: var(--letter-spacing-wide);
 }
+
+/* === DARK MODE GLOBAL STYLES === */
+.dark-mode {
+  color-scheme: dark;
+}
+
+html.dark-mode,
+html.dark-mode body,
+body.dark-mode {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Força o background em todos os containers */
+.dark-mode *:not(svg):not(path):not(circle):not(line) {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
