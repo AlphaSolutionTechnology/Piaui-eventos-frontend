@@ -36,7 +36,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           console.log('⚠️ Usuário não autenticado - dados locais limpos');
-        } 
+        }
         // Se for outra rota protegida, redirecionar para login
         else if (!error.url?.includes('/auth/login')) {
           localStorage.removeItem('user');

@@ -1,6 +1,11 @@
 <header class="topbar" [class.dark-mode]="isDarkMode">
-  <div class="brand-logo" (click)="navigateToEvents(); $event.stopPropagation()" role="button" tabindex="0">
-    <svg class="logo-icon" viewBox="0 0 40 40" fill="none" style="pointer-events: none;">
+  <div
+    class="brand-logo"
+    (click)="navigateToEvents(); $event.stopPropagation()"
+    role="button"
+    tabindex="0"
+  >
+    <svg class="logo-icon" viewBox="0 0 40 40" fill="none" style="pointer-events: none">
       <!-- Background circle com gradiente -->
       <circle
         cx="20"
@@ -24,12 +29,7 @@
         <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite" />
       </circle>
       <circle cx="32" cy="18" r="1.5" fill="rgba(255,255,255,0.6)">
-        <animate
-          attributeName="opacity"
-          values="0.6;0.9;0.6"
-          dur="2.5s"
-          repeatCount="indefinite"
-        />
+        <animate attributeName="opacity" values="0.6;0.9;0.6" dur="2.5s" repeatCount="indefinite" />
       </circle>
       <circle cx="30" cy="24" r="1.8" fill="rgba(255,255,255,0.7)">
         <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" />
@@ -44,7 +44,7 @@
         </linearGradient>
       </defs>
     </svg>
-    <span class="brand-text text-brand" style="pointer-events: none;">EventHub</span>
+    <span class="brand-text text-brand" style="pointer-events: none">EventHub</span>
   </div>
   <nav class="nav">
     @if (showDarkModeToggle) {

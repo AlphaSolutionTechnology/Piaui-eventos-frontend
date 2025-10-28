@@ -17,13 +17,13 @@ import { DarkModeToggleComponent } from '../dark-mode-toggle/dark-mode-toggle';
 export class AppHeader implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
-  
+
   @Input() isDarkMode = false;
   @Input() showDarkModeToggle = true;
   @HostBinding('class.dark-mode') get darkModeClass() {
     return this.isDarkMode;
   }
-  
+
   user: User | null = null;
   isUserDropdownOpen = false;
 

@@ -29,7 +29,7 @@ interface RegisterForm {
 export class RegisterComponent implements OnInit, OnDestroy {
   @HostBinding('class.dark-mode') isDarkModeActive = false;
   private darkModeObserver: MutationObserver | null = null;
-  
+
   isLoading = false;
   showSuccess = false;
   showError = false;
