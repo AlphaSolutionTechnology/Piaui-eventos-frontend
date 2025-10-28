@@ -20,6 +20,8 @@ export class AppHeader implements OnInit {
 
   @Input() isDarkMode = false;
   @Input() showDarkModeToggle = true;
+  @Input() showUserCard = true;
+  @Input() showCreateEventButton = true;
   @HostBinding('class.dark-mode') get darkModeClass() {
     return this.isDarkMode;
   }

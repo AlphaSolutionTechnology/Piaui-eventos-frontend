@@ -1,7 +1,7 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy } from '@angular/core';
+import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 interface CreateEventForm {
   title: string;
@@ -32,11 +32,17 @@ interface Category {
 @Component({
   selector: 'app-create-event',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './create-event.html',
-  styleUrls: ['./create-event.css']
+  styleUrls: ['./create-event.css'],
+  host: {
+    '[class.dark-mode]': 'isDarkModeActive',
+  },
 })
-export class CreateEventComponent implements OnInit {
+export class CreateEventComponent implements OnInit, OnDestroy {
+  isDarkModeActive = false;
+  private darkModeObserver: MutationObserver | null = null;
+
   isLoading = false;
   showSuccess = false;
   showError = false;
@@ -82,11 +88,36 @@ export class CreateEventComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private location: Location,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
     this.setMinDate();
+    this.observeDarkMode();
+  }
+
+  ngOnDestroy() {
+    if (this.darkModeObserver) {
+      this.darkModeObserver.disconnect();
+    }
+  }
+
+  observeDarkMode() {
+    if (isPlatformBrowser(this.platformId)) {
+      // Verificar estado inicial
+      this.isDarkModeActive = document.body.classList.contains('dark-mode');
+
+      // Observar mudanças no body
+      this.darkModeObserver = new MutationObserver(() => {
+        this.isDarkModeActive = document.body.classList.contains('dark-mode');
+      });
+
+      this.darkModeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
   }
 
   setMinDate() {
@@ -291,7 +322,7 @@ export class CreateEventComponent implements OnInit {
 
   goBack() {
     if (this.currentStep === 1) {
-      this.router.navigate(['/events']);
+      this.location.back();
     } else {
       this.prevStep();
     }

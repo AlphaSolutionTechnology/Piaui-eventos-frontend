@@ -316,6 +316,41 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Dark Mode - User Dropdown */
+:host.dark-mode .user-dropdown,
+.dark-mode .user-dropdown {
+  background: #1e293b;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+:host.dark-mode .dropdown-item,
+.dark-mode .dropdown-item {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .dropdown-item:hover,
+.dark-mode .dropdown-item:hover {
+  background: rgba(51, 65, 85, 0.6);
+  color: #f1f5f9;
+}
+
+:host.dark-mode .dropdown-item.logout,
+.dark-mode .dropdown-item.logout {
+  color: #fca5a5;
+}
+
+:host.dark-mode .dropdown-item.logout:hover,
+.dark-mode .dropdown-item.logout:hover {
+  background: rgba(127, 29, 29, 0.3);
+  color: #fecaca;
+}
+
+:host.dark-mode .dropdown-divider,
+.dark-mode .dropdown-divider {
+  background: rgba(71, 85, 105, 0.5);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .topbar {

@@ -119,17 +119,6 @@
       <!-- Dropdown Menu -->
       @if (isUserDropdownOpen) {
       <div class="user-dropdown" (click)="$event.stopPropagation()">
-        <a routerLink="/profile" class="dropdown-item" (click)="closeUserDropdown()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" />
-          </svg>
-          Meu Perfil
-        </a>
         <a routerLink="/my-events" class="dropdown-item" (click)="closeUserDropdown()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <rect
@@ -148,15 +137,11 @@
           </svg>
           Meus Eventos
         </a>
-        <a routerLink="/favorites" class="dropdown-item" (click)="closeUserDropdown()">
+        <a routerLink="/create-event" class="dropdown-item" (click)="closeUserDropdown()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-              stroke="currentColor"
-              stroke-width="2"
-            />
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-          Favoritos
+          Criar Evento
         </a>
         <hr class="dropdown-divider" />
         <a routerLink="/settings" class="dropdown-item" (click)="closeUserDropdown()">

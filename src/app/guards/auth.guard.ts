@@ -10,22 +10,39 @@ export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isAuthenticated()) {
-    // Se estiver autenticado mas não tiver dados do usuário, buscar do backend
-    if (!authService.getCurrentUser()) {
-      authService.fetchCurrentUser().subscribe({
-        error: () => {
-          // Se falhar ao buscar usuário, redirecionar para login
-          router.navigate(['/login']);
-        },
-      });
-    }
-    return true;
+  // Verifica se está autenticado (tem dados no localStorage)
+  if (!authService.isAuthenticated()) {
+    // Não autenticado - redirecionar para login
+    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+    return false;
   }
 
-  // Não autenticado - redirecionar para login
-  router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-  return false;
+  // SEGURANÇA: Tem dados no localStorage, mas vamos validar com o backend
+  const currentUser = authService.getCurrentUser();
+
+  if (!currentUser) {
+    // Inconsistência: isAuthenticated() retornou true mas getCurrentUser() é null
+    // Limpar dados e redirecionar
+    console.warn('⚠️ Inconsistência detectada - limpando dados e redirecionando');
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+    return false;
+  }
+
+  // Usuário autenticado com dados válidos - permitir acesso
+  // Tentar atualizar dados do backend em background (não bloqueia navegação)
+  authService.fetchCurrentUser().subscribe({
+    error: (error) => {
+      // Se backend retornar 401/403, o interceptor vai lidar com logout
+      // Aqui apenas logamos para debug
+      if (error.status === 401 || error.status === 403) {
+        console.warn('⚠️ [AuthGuard] Sessão pode estar expirada - interceptor vai tratar');
+      }
+    },
+  });
+
+  return true;
 };
 
 /**

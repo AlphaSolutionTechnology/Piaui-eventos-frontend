@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, PLATFORM_ID, inject, HostBinding } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   EventDetailService,
@@ -28,6 +28,7 @@ export class EventDetailsPage implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
+  private location = inject(Location);
 
   event: EventDetailResponse | null = null;
   eventlocation: EventLocation | null = null;
@@ -142,6 +143,6 @@ export class EventDetailsPage implements OnInit, OnDestroy {
   }
 
   goBack() {
-    this.router.navigate(['/events']);
+    this.location.back();
   }
 }

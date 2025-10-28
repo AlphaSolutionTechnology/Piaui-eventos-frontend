@@ -2,12 +2,9 @@
   <!-- Header -->
   <header class="header">
     <div class="header-content">
-      <h1 class="logo text-brand">EventHub</h1>
-      <nav class="nav-links">
-        <a routerLink="/events" class="nav-link text-nav">Eventos</a>
-        <a routerLink="/create-event" class="nav-link active text-nav-active">Criar Evento</a>
-        <a routerLink="/login" class="nav-link text-nav">Login</a>
-      </nav>
+      <a href="/events" class="logo">
+        <h1 class="logo text-brand">EventHub</h1>
+      </a>
     </div>
   </header>
 
@@ -25,9 +22,10 @@
               stroke-linejoin="round"
             />
           </svg>
-          {{ currentStep === 1 ? 'Voltar aos eventos' : 'Voltar' }}
+          Voltar
         </button>
         <h2 class="steps-title">{{ getStepTitle() }}</h2>
+        <div class="back-btn-spacer"></div>
       </div>
 
       <div class="progress-steps">

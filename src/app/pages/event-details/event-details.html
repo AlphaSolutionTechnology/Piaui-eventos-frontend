@@ -1,6 +1,6 @@
 <div class="event-details-root" [class.dark-mode]="isDarkModeActive">
   <!-- Header Reutilizável -->
-  <app-header [isDarkMode]="isDarkModeActive" [showDarkModeToggle]="false"></app-header>
+  <app-header [isDarkMode]="isDarkModeActive" [showDarkModeToggle]="false" [showCreateEventButton]="false"></app-header>
 
   <main class="content-wrap">
     <!-- Botão Voltar -->
@@ -15,7 +15,7 @@
             stroke-linejoin="round"
           />
         </svg>
-        Voltar para Eventos
+        Voltar
       </button>
     </div>
 
@@ -144,17 +144,6 @@
                     <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" />
                   </svg>
                   Inscrever-se no Evento
-                </button>
-
-                <button class="register-btn secondary">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    />
-                  </svg>
-                  Adicionar à Lista de Desejos
                 </button>
               </div>
             </div>

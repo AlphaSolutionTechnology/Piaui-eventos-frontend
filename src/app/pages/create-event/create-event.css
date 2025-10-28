@@ -3,6 +3,8 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
   overflow-x: hidden;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .create-event-container::before {
@@ -35,7 +37,7 @@
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 }
 
@@ -44,6 +46,12 @@
   font-weight: bold;
   color: white;
   text-decoration: none;
+  margin: 0;
+  border-bottom: none;
+}
+
+.logo::after {
+  display: none;
 }
 
 .nav-links {
@@ -98,8 +106,18 @@
 .steps-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 2rem;
   margin-bottom: 2rem;
+}
+
+.back-btn-spacer {
+  width: 120px; /* Same width as back button to balance layout */
+}
+
+.steps-title {
+  flex: 1;
+  text-align: center;
 }
 
 .back-btn {
@@ -116,6 +134,7 @@
   transition: all 0.3s ease;
   font-weight: 500;
   font-size: 0.9rem;
+  width: 120px;
 }
 
 .back-btn:hover {
@@ -201,6 +220,8 @@
   padding: 3rem 2rem 4rem;
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .create-event-form {
@@ -218,6 +239,8 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 2.5rem;
   margin-bottom: 2rem;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .form-header {
@@ -880,6 +903,16 @@
 }
 
 /* Responsive Design */
+@media (min-width: 1200px) {
+  .main-content {
+    padding: 3rem 4rem 4rem;
+  }
+
+  .form-card {
+    padding: 3rem;
+  }
+}
+
 @media (max-width: 1024px) {
   .form-row {
     grid-template-columns: 1fr;
@@ -974,4 +1007,169 @@
   .category-name {
     font-size: 0.8rem;
   }
+}
+
+/* ============================================
+   DARK MODE STYLES
+   ============================================ */
+
+:host.dark-mode,
+.dark-mode {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+:host.dark-mode .create-event-container,
+.dark-mode .create-event-container {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+:host.dark-mode .create-event-container::before,
+.dark-mode .create-event-container::before {
+  background:
+    radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+}
+
+:host.dark-mode .header,
+.dark-mode .header {
+  background: rgba(30, 41, 59, 0.8);
+  border-bottom-color: rgba(71, 85, 105, 0.5);
+}
+
+:host.dark-mode .form-card,
+.dark-mode .form-card {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+}
+
+:host.dark-mode .form-header h3,
+.dark-mode .form-header h3 {
+  color: #f1f5f9;
+}
+
+:host.dark-mode .form-header p,
+.dark-mode .form-header p {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .form-group label,
+.dark-mode .form-group label {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .form-input,
+.dark-mode .form-input,
+:host.dark-mode .form-textarea,
+.dark-mode .form-textarea,
+:host.dark-mode .form-select,
+.dark-mode .form-select {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(71, 85, 105, 0.5);
+  color: #e2e8f0;
+}
+
+:host.dark-mode .form-input:focus,
+.dark-mode .form-input:focus,
+:host.dark-mode .form-textarea:focus,
+.dark-mode .form-textarea:focus,
+:host.dark-mode .form-select:focus,
+.dark-mode .form-select:focus {
+  background: rgba(51, 65, 85, 0.7);
+  border-color: #667eea;
+}
+
+:host.dark-mode .category-option,
+.dark-mode .category-option {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(71, 85, 105, 0.5);
+}
+
+:host.dark-mode .category-option:hover,
+.dark-mode .category-option:hover {
+  background: rgba(71, 85, 105, 0.6);
+  border-color: #667eea;
+}
+
+:host.dark-mode .category-option.active,
+.dark-mode .category-option.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+:host.dark-mode .category-name,
+.dark-mode .category-name {
+  color: #e2e8f0;
+}
+
+:host.dark-mode .image-preview-container,
+.dark-mode .image-preview-container {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(71, 85, 105, 0.5);
+}
+
+:host.dark-mode .tag-item,
+.dark-mode .tag-item {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+}
+
+:host.dark-mode .tag-remove,
+.dark-mode .tag-remove {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .tag-remove:hover,
+.dark-mode .tag-remove:hover {
+  color: #f1f5f9;
+}
+
+:host.dark-mode .checkbox-label,
+.dark-mode .checkbox-label {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .summary-card,
+.dark-mode .summary-card {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(71, 85, 105, 0.5);
+}
+
+:host.dark-mode .summary-title,
+.dark-mode .summary-title {
+  color: #f1f5f9;
+}
+
+:host.dark-mode .summary-item label,
+.dark-mode .summary-item label {
+  color: #94a3b8;
+}
+
+:host.dark-mode .summary-item strong,
+.dark-mode .summary-item strong {
+  color: #e2e8f0;
+}
+
+:host.dark-mode .alert,
+.dark-mode .alert {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+:host.dark-mode .success-modal,
+.dark-mode .success-modal {
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+}
+
+:host.dark-mode .success-modal h3,
+.dark-mode .success-modal h3 {
+  color: #f1f5f9;
+}
+
+:host.dark-mode .success-modal p,
+.dark-mode .success-modal p {
+  color: #cbd5e1;
 }

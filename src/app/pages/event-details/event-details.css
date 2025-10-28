@@ -712,7 +712,12 @@
 
 :host.dark-mode .event-title,
 .dark-mode .event-title {
-  color: #f1f5f9;
+  background: linear-gradient(135deg, #f1f5f9 0%, #c7d2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 20px rgba(199, 210, 254, 0.3);
+  filter: drop-shadow(0 0 30px rgba(199, 210, 254, 0.5));
 }
 
 :host.dark-mode .event-category,

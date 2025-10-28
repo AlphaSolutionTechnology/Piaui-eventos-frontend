@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -33,9 +33,15 @@ interface Event {
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './event-registration.html',
-  styleUrls: ['./event-registration.css']
+  styleUrls: ['./event-registration.css'],
+  host: {
+    '[class.dark-mode]': 'isDarkModeActive',
+  },
 })
-export class EventRegistrationComponent implements OnInit {
+export class EventRegistrationComponent implements OnInit, OnDestroy {
+  isDarkModeActive = false;
+  private darkModeObserver: MutationObserver | null = null;
+  
   eventId: string | null = null;
   event: Event | null = null;
   isLoading = false;
@@ -85,12 +91,37 @@ export class EventRegistrationComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
     this.eventId = this.route.snapshot.paramMap.get('id');
     this.loadEventData();
+    this.observeDarkMode();
+  }
+
+  ngOnDestroy() {
+    if (this.darkModeObserver) {
+      this.darkModeObserver.disconnect();
+    }
+  }
+
+  observeDarkMode() {
+    if (isPlatformBrowser(this.platformId)) {
+      // Verificar estado inicial
+      this.isDarkModeActive = document.body.classList.contains('dark-mode');
+
+      // Observar mudanças no body
+      this.darkModeObserver = new MutationObserver(() => {
+        this.isDarkModeActive = document.body.classList.contains('dark-mode');
+      });
+
+      this.darkModeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
   }
 
   loadEventData() {
