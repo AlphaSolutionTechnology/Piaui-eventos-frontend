@@ -1,6 +1,7 @@
-<div class="events-root">
+<div class="events-root" [class.dark-mode]="isDarkModeActive">
+  <!-- Header Inline -->
   <header class="topbar">
-    <div class="brand-logo">
+    <div class="brand-logo" (click)="navigateToEvents()" style="cursor: pointer;">
       <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
         <!-- Background circle com gradiente -->
         <circle
@@ -47,10 +48,48 @@
       </svg>
       <span class="brand-text text-brand">EventHub</span>
     </div>
-    <nav class="nav"></nav>
+    <nav class="nav">
+      <dark-mode-toggle></dark-mode-toggle>
+    </nav>
+
+    <!-- Botão de Login (quando não autenticado) -->
+    @if (!isAuthenticated()) {
+    <button class="login-button" (click)="navigateToLogin()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <polyline
+          points="10 17 15 12 10 7"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <line
+          x1="15"
+          y1="12"
+          x2="3"
+          y2="12"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      Fazer Login
+    </button>
+    }
+
+    <!-- Card do Usuário (quando autenticado) -->
+    @if (isAuthenticated()) {
     <div class="user-avatar" (click)="toggleUserDropdown()">
       <div class="avatar-container">
-        @if (user.avatar) {
+        @if (user && user.avatar) {
         <img [src]="user.avatar" [alt]="user.name" class="avatar-image" />
         } @else {
         <div class="avatar-initials">
@@ -60,8 +99,8 @@
         <div class="avatar-status"></div>
       </div>
       <div class="user-info">
-        <span class="user-name text-user-name">{{ user.name }}</span>
-        <span class="user-role text-micro">{{ user.role }}</span>
+        <span class="user-name text-user-name">{{ user?.name }}</span>
+        <span class="user-role text-micro">{{ user?.role }}</span>
       </div>
       <svg
         class="dropdown-arrow"
@@ -143,10 +182,11 @@
       </div>
       }
     </div>
+    }
   </header>
 
-  <!-- Filtros - DESABILITADO TEMPORARIAMENTE -->
-  <!-- <section class="filters-section">
+  <!-- Seção de Filtros -->
+  <section class="filters-section">
     <div class="filters-container">
       <div
         class="filters-header"
@@ -189,6 +229,7 @@
               type="text"
               [(ngModel)]="filters.name"
               (input)="onSearchInput($event)"
+              (keyup.enter)="applySearchFilters()"
               placeholder="Digite o nome do evento..."
               class="filter-input"
             />
@@ -196,12 +237,7 @@
 
           <div class="filter-group">
             <label for="timeFilter">Por Horário</label>
-            <select
-              id="timeFilter"
-              [(ngModel)]="filters.timeRange"
-              (change)="onTimeRangeFilterChange()"
-              class="filter-select"
-            >
+            <select id="timeFilter" [(ngModel)]="filters.timeRange" class="filter-select">
               <option value="">Todos os horários</option>
               <option value="morning">Manhã (06:00 - 12:00)</option>
               <option value="afternoon">Tarde (12:00 - 18:00)</option>
@@ -211,20 +247,32 @@
 
           <div class="filter-group">
             <label for="eventTypeFilter">Por Tipo</label>
-            <select
-              id="eventTypeFilter"
-              [(ngModel)]="filters.eventType"
-              (change)="onEventTypeFilterChange()"
-              class="filter-select"
-            >
+            <select id="eventTypeFilter" [(ngModel)]="filters.eventType" class="filter-select">
               <option value="">Todos os tipos</option>
               @for (type of eventTypes; track type) {
-              <option [value]="type">{{ type }}</option>
+              <option [value]="type">{{ formatEventType(type) }}</option>
               }
             </select>
           </div>
 
-          <div class="filter-group">
+          <div class="filter-actions">
+            <button
+              (click)="applySearchFilters()"
+              class="search-btn"
+              [disabled]="!hasActiveFilters()"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+                <path
+                  d="M21 21l-4.35-4.35"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              Buscar
+            </button>
+
             <button
               (click)="clearFilters()"
               class="clear-filters-btn"
@@ -252,7 +300,7 @@
         </div>
       </div>
     </div>
-  </section> -->
+  </section>
 
   <main class="grid-wrap">
     <!-- Indicador de Carregamento -->
@@ -315,7 +363,7 @@
       <article class="card" [style.--card-gradient]="getEventGradient(event.eventType)">
         @if (event.imageUrl) {
         <div class="eventoImage">
-          <img [src]="event.imageUrl" [alt]="event.name" />
+          <img [src]="event.imageUrl" [alt]="event.name" (error)="onImageError($event)" />
         </div>
         }
         <div class="card-top">
@@ -325,7 +373,7 @@
           <p class="card-desc text-small">{{ event.description }}</p>
         </div>
         <div class="card-cta">
-          <a class="btn" (click)="navigateToEvent(event.id)">
+          <button class="btn" (click)="navigateToEvent(event.id)" type="button">
             <span>Ver Detalhes</span>
             <svg
               width="16"
@@ -337,7 +385,7 @@
             >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-          </a>
+          </button>
         </div>
       </article>
       }

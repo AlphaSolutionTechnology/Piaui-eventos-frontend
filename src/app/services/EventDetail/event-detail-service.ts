@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../enviroment';
 
 export interface EventLocation {
   id: number;
@@ -29,7 +30,7 @@ export interface EventDetailResponse {
   providedIn: 'root',
 })
 export class EventDetailService {
-  private apiUrl = 'http://localhost:8080/api/events';
+  private apiUrl = `${environment.API_URL}/events`;
 
   constructor(private http: HttpClient) {}
 

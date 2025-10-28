@@ -12,8 +12,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+  background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
   pointer-events: none;
@@ -48,7 +47,8 @@
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
+  align-items: center;
 }
 
 .nav-link {
@@ -286,7 +286,7 @@
   font-size: 0.95rem;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   display: none;
 }
 
@@ -301,12 +301,12 @@
   flex-shrink: 0;
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkmark {
+.checkbox-label input[type='checkbox']:checked + .checkmark {
   background: #4ade80;
   border-color: #4ade80;
 }
 
-.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+.checkbox-label input[type='checkbox']:checked + .checkmark::after {
   content: '';
   position: absolute;
   left: 6px;
@@ -633,4 +633,169 @@
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+
+.login-container.dark-mode,
+.dark-mode .login-container {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+.login-container.dark-mode::before,
+.dark-mode .login-container::before {
+  background: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(79, 70, 229, 0.08) 0%, transparent 50%);
+}
+
+.login-container.dark-mode .header,
+.dark-mode .header {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.login-container.dark-mode .login-form-card,
+.dark-mode .login-form-card {
+  background: rgba(30, 41, 59, 0.95) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .form-header h3 {
+  color: #f1f5f9;
+}
+
+.dark-mode .form-header p {
+  color: #94a3b8;
+}
+
+.dark-mode .form-group label {
+  color: #cbd5e1;
+}
+
+.dark-mode .input-wrapper input {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #f1f5f9;
+}
+
+.dark-mode .input-wrapper input::placeholder {
+  color: #64748b;
+}
+
+.dark-mode .input-wrapper input:focus {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border-color: #3b82f6;
+}
+
+.dark-mode .input-icon {
+  color: #94a3b8;
+}
+
+.dark-mode .password-toggle {
+  color: #94a3b8;
+}
+
+.dark-mode .password-toggle:hover {
+  color: #cbd5e1;
+}
+
+.dark-mode .checkbox-label {
+  color: #cbd5e1;
+}
+
+.dark-mode .forgot-password {
+  color: #60a5fa;
+}
+
+.dark-mode .forgot-password:hover {
+  color: #3b82f6;
+}
+
+.dark-mode .form-footer p {
+  color: #94a3b8;
+}
+
+.dark-mode .register-link {
+  color: #60a5fa;
+}
+
+.dark-mode .register-link:hover {
+  color: #3b82f6;
+}
+
+.dark-mode .divider {
+  color: #64748b;
+}
+
+.dark-mode .divider::before,
+.dark-mode .divider::after {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.dark-mode .social-btn {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #f1f5f9;
+}
+
+.dark-mode .social-btn:hover {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.dark-mode .welcome-content {
+  color: #f1f5f9;
+}
+
+.dark-mode .welcome-title {
+  color: white;
+}
+
+.dark-mode .welcome-subtitle {
+  color: #cbd5e1;
+}
+
+.dark-mode .feature-item {
+  color: #e2e8f0;
+}
+
+.dark-mode .feature-item svg {
+  color: #60a5fa;
+}
+
+.dark-mode .stat-number {
+  color: white;
+}
+
+.dark-mode .stat-label {
+  color: #94a3b8;
+}
+
+.dark-mode .error-alert {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.dark-mode .login-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.dark-mode .login-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.dark-mode .theme-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark-mode .theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
 }

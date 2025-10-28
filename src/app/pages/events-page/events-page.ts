@@ -1,6 +1,7 @@
 import {
   Component,
   HostListener,
+  HostBinding,
   OnInit,
   OnDestroy,
   ChangeDetectorRef,
@@ -11,22 +12,27 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 import { EventsService, EventsFilter } from '../../services/events.service';
 import { ApiEvent, EventsResponse } from '../../models/api-event.interface';
 import { AuthService, User } from '../../services/auth';
+import { DarkModeToggleComponent } from '../../components/dark-mode-toggle/dark-mode-toggle';
 
 @Component({
   standalone: true,
   selector: 'events-page',
-  imports: [CommonModule, RouterLink, FormsModule, HttpClientModule],
+  imports: [CommonModule, RouterLink, FormsModule, DarkModeToggleComponent],
   templateUrl: './events-page.html',
   styleUrl: './events-page.css',
+  host: {
+    '[class.dark-mode]': 'isDarkModeActive',
+  },
 })
 export class EventsPage implements OnInit, OnDestroy {
+  @HostBinding('class.dark-mode') isDarkModeActive = false;
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
+  private darkModeObserver: MutationObserver | null = null;
 
   // Dados do usuário (carregados dinamicamente)
   user: User = {
@@ -80,6 +86,37 @@ export class EventsPage implements OnInit, OnDestroy {
     // Voltar ao topo da página ao inicializar (apenas no browser)
     if (isPlatformBrowser(this.platformId)) {
       window.scrollTo(0, 0);
+
+      // Verificar o tema inicial
+      const savedTheme = localStorage.getItem('theme');
+      this.isDarkModeActive = savedTheme === 'dark';
+      console.log(
+        '🎨 [EVENTS PAGE] Tema inicial:',
+        savedTheme,
+        'isDarkModeActive:',
+        this.isDarkModeActive
+      );
+
+      // Observar mudanças na classe dark-mode do body
+      this.darkModeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            const newValue = document.body.classList.contains('dark-mode');
+            console.log('🎨 [EVENTS PAGE] Body mudou! dark-mode presente:', newValue);
+            this.isDarkModeActive = newValue;
+            console.log(
+              '🎨 [EVENTS PAGE] isDarkModeActive atualizado para:',
+              this.isDarkModeActive
+            );
+            this.cdr.detectChanges();
+          }
+        });
+      });
+
+      this.darkModeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
     }
 
     // Carregar dados do usuário logado
@@ -94,8 +131,6 @@ export class EventsPage implements OnInit, OnDestroy {
 
     if (cachedEvents && cachedEvents.length > 0) {
       // Se o service já tem eventos em cache, usar o cache
-      console.log('Usando eventos do cache:', cachedEvents.length);
-
       // Resetar loading ANTES de subscrever aos estados
       this.eventsService.resetLoading();
 
@@ -114,8 +149,6 @@ export class EventsPage implements OnInit, OnDestroy {
       }, 0);
     } else {
       // Carregar eventos se não houver cache
-      console.log('Cache vazio, carregando eventos da API');
-
       // Subscrever aos estados do service
       this.subscribeToServiceStates();
 
@@ -127,43 +160,56 @@ export class EventsPage implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+
+    if (this.darkModeObserver) {
+      this.darkModeObserver.disconnect();
+    }
   }
 
-  loadEvents(): void {
+  loadEvents(pageSize?: number): void {
+    const size = pageSize || this.eventsPerPage;
+
     const filters = {
       search: this.filters.name,
-      eventType: this.filters.eventType,
+      category: this.filters.eventType, // Corrigido: usar 'category' ao invés de 'eventType'
     };
 
-    console.log('Carregando eventos com filtros:', filters, 'página:', this.currentPage);
+    console.log(
+      '🔍 Buscando eventos com filtros:',
+      filters,
+      'página:',
+      this.currentPage,
+      'tamanho:',
+      size
+    );
 
     // append=false para resetar a lista
     this.eventsService
-      .getEvents(filters, this.currentPage, this.eventsPerPage, false)
+      .getEvents(filters, this.currentPage, size, false)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('Eventos carregados:', response.events.length, 'de', response.total);
+          console.log(
+            '✅ Recebidos',
+            response.events.length,
+            'eventos de',
+            response.total,
+            'no total'
+          );
           this.events = response.events;
           this.totalEvents = response.total;
           this.totalPages = response.pagination.totalPages;
           this.hasMoreEvents = this.currentPage < response.pagination.totalPages - 1;
 
-          // Aplicar filtros locais apenas se necessário
-          if (this.filters.timeRange) {
-            this.applyFilters();
-          } else {
-            this.filteredEvents = this.events;
-          }
-
-          console.log('Eventos filtrados:', this.filteredEvents.length);
+          // Sempre aplicar filtros locais após carregar
+          this.applyFilters();
 
           // Forçar detecção de mudanças
           this.cdr.detectChanges();
         },
         error: (error) => {
+          console.error('❌ Erro ao carregar eventos:', error);
           this.error = 'Erro ao carregar eventos. Tente novamente.';
-          console.error('Erro ao carregar eventos:', error);
           this.cdr.detectChanges();
         },
       });
@@ -187,19 +233,20 @@ export class EventsPage implements OnInit, OnDestroy {
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((searchTerm) => {
-        console.log('Executando busca com debounce:', searchTerm);
         this.filters.name = searchTerm;
         this.currentPage = 0;
         this.events = [];
         this.filteredEvents = [];
-        this.hasMoreEvents = true;
-        this.loadEvents();
+        this.hasMoreEvents = false; // Desabilita infinite scroll durante busca
+
+        // Buscar com um limite maior para pegar todos os resultados
+        // O backend vai filtrar por "search"
+        this.loadEvents(500); // Busca até 500 eventos
       });
   }
 
   private subscribeToServiceStates(): void {
     this.eventsService.loading$.pipe(takeUntil(this.destroy$)).subscribe((loading: boolean) => {
-      console.log('Loading state changed:', loading);
       this.isLoading = loading;
       this.cdr.detectChanges();
     });
@@ -212,7 +259,6 @@ export class EventsPage implements OnInit, OnDestroy {
     // Subscrever aos eventos para manter sincronização
     this.eventsService.events$.pipe(takeUntil(this.destroy$)).subscribe((events: ApiEvent[]) => {
       if (events.length > 0 && this.events.length === 0) {
-        console.log('Events updated from service:', events.length);
         this.events = events;
         if (!this.filters.timeRange) {
           this.filteredEvents = events;
@@ -226,10 +272,12 @@ export class EventsPage implements OnInit, OnDestroy {
 
   /**
    * Aplica todos os filtros aos eventos
+   * Aplica filtros locais: nome (se necessário), tipo e horário
    */
   applyFilters(): void {
     this.filteredEvents = this.events.filter((event) => {
-      // Filtro por nome (busca no título e descrição)
+      // Filtro por nome (case-insensitive, busca no nome e descrição)
+      // Aplicado como fallback caso o backend não filtre corretamente
       const nameMatch =
         !this.filters.name ||
         event.name.toLowerCase().includes(this.filters.name.toLowerCase()) ||
@@ -245,28 +293,14 @@ export class EventsPage implements OnInit, OnDestroy {
       return nameMatch && typeMatch && timeMatch;
     });
 
+    console.log(
+      '🔍 Filtros aplicados - Total:',
+      this.events.length,
+      '→ Filtrados:',
+      this.filteredEvents.length
+    );
+
     // Forçar detecção de mudanças após aplicar filtros
-    this.cdr.detectChanges();
-  }
-
-  /**
-   * Chamado quando o filtro de tipo de evento muda
-   */
-  onEventTypeFilterChange(): void {
-    console.log('Filtro de tipo mudou para:', this.filters.eventType);
-    this.currentPage = 0;
-    this.events = [];
-    this.filteredEvents = [];
-    this.hasMoreEvents = true;
-    this.loadEvents();
-  }
-
-  /**
-   * Chamado quando o filtro de horário muda (apenas local)
-   */
-  onTimeRangeFilterChange(): void {
-    console.log('Filtro de horário mudou para:', this.filters.timeRange);
-    this.applyFilters();
     this.cdr.detectChanges();
   }
 
@@ -295,7 +329,6 @@ export class EventsPage implements OnInit, OnDestroy {
    * Limpa todos os filtros
    */
   clearFilters(): void {
-    console.log('Limpando filtros...');
     this.filters = {
       name: '',
       timeRange: '',
@@ -306,6 +339,16 @@ export class EventsPage implements OnInit, OnDestroy {
     this.filteredEvents = [];
     this.hasMoreEvents = true;
     this.loadEvents();
+  }
+
+  /**
+   * Manipula erro de carregamento de imagem
+   */
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    // Fallback para imagem padrão
+    img.src = '/assets/events/default-event.jpg';
+    img.onerror = null; // Previne loop infinito se a imagem padrão também falhar
   }
 
   /**
@@ -336,14 +379,42 @@ export class EventsPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Método para busca com debounce
+   * Método para busca (apenas atualiza o valor, não busca automaticamente)
    */
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const searchTerm = target.value;
-    console.log('Busca digitada:', searchTerm);
-    this.currentPage = 0; // Reset para primeira página ao buscar
-    this.searchSubject.next(searchTerm);
+    this.filters.name = searchTerm; // Apenas atualiza o filtro
+  }
+
+  /**
+   * Aplica os filtros ao clicar no botão "Buscar"
+   */
+  applySearchFilters(): void {
+    // Se houver termo de busca, buscar na API
+    if (this.filters.name && this.filters.name.trim().length > 0) {
+      this.currentPage = 0;
+      this.events = [];
+      this.filteredEvents = [];
+      this.hasMoreEvents = false; // Desabilita infinite scroll durante busca
+
+      // Buscar até 200 eventos que correspondem ao filtro
+      this.loadEvents(200);
+    } else if (this.filters.eventType || this.filters.timeRange) {
+      // Se não houver busca por nome, mas houver outros filtros
+      this.currentPage = 0;
+      this.events = [];
+      this.filteredEvents = [];
+      this.hasMoreEvents = true;
+      this.loadEvents();
+    } else {
+      // Se não houver nenhum filtro, recarregar eventos normais
+      this.currentPage = 0;
+      this.events = [];
+      this.filteredEvents = [];
+      this.hasMoreEvents = true;
+      this.loadEvents();
+    }
   }
 
   /**
@@ -351,15 +422,9 @@ export class EventsPage implements OnInit, OnDestroy {
    */
   loadMoreEvents(): void {
     if (this.isLoadingMore || !this.hasMoreEvents || this.isLoading) {
-      console.log('LoadMoreEvents bloqueado:', {
-        isLoadingMore: this.isLoadingMore,
-        hasMoreEvents: this.hasMoreEvents,
-        isLoading: this.isLoading,
-      });
       return;
     }
 
-    console.log('Carregando mais eventos - página:', this.currentPage + 1);
     this.isLoadingMore = true;
 
     // Forçar detecção de mudanças para mostrar o loading
@@ -369,7 +434,7 @@ export class EventsPage implements OnInit, OnDestroy {
 
     const filters = {
       search: this.filters.name,
-      eventType: this.filters.eventType,
+      category: this.filters.eventType, // Corrigido: usar 'category' ao invés de 'eventType'
     };
 
     // append=true para adicionar à lista existente
@@ -379,19 +444,14 @@ export class EventsPage implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         // Garantir que isLoadingMore seja resetado mesmo se houver erro
         finalize(() => {
-          console.log('Finalizando requisição - resetando isLoadingMore');
           this.isLoadingMore = false;
           this.cdr.detectChanges();
         })
       )
       .subscribe({
         next: (response: EventsResponse) => {
-          console.log('Novos eventos recebidos:', response.events.length);
-          console.log('Resposta completa:', response);
-
           // Verificar se realmente há eventos novos
           if (response.events.length === 0) {
-            console.warn('Nenhum evento novo recebido - pode ter chegado ao fim');
             this.hasMoreEvents = false;
             return;
           }
@@ -402,26 +462,14 @@ export class EventsPage implements OnInit, OnDestroy {
               !this.events.some((existingEvent) => existingEvent.id === newEvent.id)
           );
 
-          console.log('Eventos únicos para adicionar:', newEvents.length);
-
-          if (newEvents.length === 0) {
-            console.warn('Todos os eventos já existem na lista - possível duplicação');
-          }
-
           this.events = [...this.events, ...newEvents];
           this.totalEvents = response.total;
           this.totalPages = response.pagination.totalPages;
           this.hasMoreEvents = this.currentPage < response.pagination.totalPages - 1;
 
-          // Aplicar filtros locais apenas se necessário
-          if (this.filters.timeRange) {
-            this.applyFilters();
-          } else {
-            this.filteredEvents = this.events;
-          }
-
-          console.log('Total de eventos agora:', this.filteredEvents.length);
-          console.log('Tem mais eventos?', this.hasMoreEvents);
+          // SEMPRE aplicar filtros após carregar mais eventos
+          // Isso garante que o filtro de nome seja respeitado durante o infinite scroll
+          this.applyFilters();
 
           // Forçar detecção de mudanças múltiplas vezes
           this.cdr.detectChanges();
@@ -434,7 +482,6 @@ export class EventsPage implements OnInit, OnDestroy {
           // Terceira detecção para garantir
           setTimeout(() => {
             this.cdr.detectChanges();
-            console.log('Renderização concluída');
           }, 100);
         },
         error: (error) => {
@@ -489,6 +536,13 @@ export class EventsPage implements OnInit, OnDestroy {
    */
   navigateToEvent(eventId: number): void {
     this.router.navigate(['/event', eventId]);
+  }
+
+  /**
+   * Navega para a página de eventos (reload)
+   */
+  navigateToEvents(): void {
+    window.location.reload();
   }
 
   /**
@@ -571,11 +625,8 @@ export class EventsPage implements OnInit, OnDestroy {
     this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
         if (user) {
-          console.log('Dados do usuário atualizados:', user);
           this.user = user;
           this.cdr.detectChanges();
-        } else {
-          console.warn('Nenhum usuário logado encontrado');
         }
       },
       error: (error) => {
@@ -585,7 +636,6 @@ export class EventsPage implements OnInit, OnDestroy {
 
     // Se estiver autenticado mas não tiver cache, buscar do backend
     if (!cachedUser && this.authService.isAuthenticated()) {
-      console.log('Buscando dados do usuário do backend...');
       this.authService.fetchCurrentUser().subscribe();
     }
   }
@@ -595,6 +645,20 @@ export class EventsPage implements OnInit, OnDestroy {
    */
   getUserInitials(): string {
     return this.authService.getUserInitials(this.user.name);
+  }
+
+  /**
+   * Verifica se o usuário está autenticado
+   */
+  isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
+  }
+
+  /**
+   * Navega para a página de login
+   */
+  navigateToLogin(): void {
+    this.router.navigate(['/login']);
   }
 
   /**
@@ -615,8 +679,25 @@ export class EventsPage implements OnInit, OnDestroy {
    * Faz logout do usuário
    */
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    // Fechar o dropdown primeiro
+    this.closeUserDropdown();
+
+    // Fazer logout via AuthService (aguarda conclusão)
+    this.authService
+      .logout()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          // Redirecionar para página de login após logout completo
+          console.log('🚪 Redirecionando para login...');
+          this.router.navigate(['/login']);
+        },
+        error: (error) => {
+          console.error('❌ Erro durante logout:', error);
+          // Mesmo com erro, redireciona para login
+          this.router.navigate(['/login']);
+        },
+      });
   }
 
   /**
@@ -641,6 +722,12 @@ export class EventsPage implements OnInit, OnDestroy {
     }
 
     if (this.isLoadingMore || !this.hasMoreEvents || this.isLoading) {
+      return;
+    }
+
+    // NÃO carregar mais eventos se houver filtro de nome ativo
+    // O filtro de nome é local, então não faz sentido buscar mais eventos da API
+    if (this.filters.name && this.filters.name.trim().length > 0) {
       return;
     }
 

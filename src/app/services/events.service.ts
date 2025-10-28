@@ -127,20 +127,16 @@ export class EventsService {
       params = params.set('eventType', filter.category);
     }
 
-    // Fazer requisição para a API (endpoint público, sem withCredentials)
-    console.log('EventsService.getEvents() - Fazendo requisição:', { page, size, append, filter });
+    // Log para debug
+    const url = `${this.apiUrl}?${params.toString()}`;
+    console.log('📡 Chamando API:', url);
 
+    // Fazer requisição para a API (endpoint público, sem withCredentials)
     return this.http.get<SpringPageResponse<BackendEvent>>(this.apiUrl, { params }).pipe(
       map((response) => {
-        console.log('EventsService.getEvents() - Resposta recebida:', {
-          eventos: response.content.length,
-          totalElements: response.totalElements,
-          page: response.number,
-        });
         return this.transformBackendResponse(response);
       }),
       tap((response) => {
-        console.log('EventsService.getEvents() - Resetando loading para false');
         this.loadingSubject.next(false);
 
         // Apenas atualizar o BehaviorSubject se append=false
@@ -222,7 +218,7 @@ export class EventsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    return this.http.get<BackendEvent>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
+    return this.http.get<BackendEvent>(`${this.apiUrl}/${id}`).pipe(
       map((backendEvent) => this.transformBackendEvent(backendEvent)),
       tap(() => this.loadingSubject.next(false)),
       catchError((error) => {
@@ -259,23 +255,21 @@ export class EventsService {
       },
     };
 
-    return this.http
-      .post<BackendEvent>(this.apiUrl, backendEventData, { withCredentials: true })
-      .pipe(
-        map((backendEvent) => this.transformBackendEvent(backendEvent)),
-        tap((newEvent) => {
-          this.loadingSubject.next(false);
-          // Atualizar lista de eventos
-          const currentEvents = this.eventsSubject.value;
-          this.eventsSubject.next([newEvent, ...currentEvents]);
-        }),
-        catchError((error) => {
-          console.error('Erro ao criar evento:', error);
-          this.errorSubject.next('Erro ao criar evento. Tente novamente.');
-          this.loadingSubject.next(false);
-          throw error;
-        })
-      );
+    return this.http.post<BackendEvent>(this.apiUrl, backendEventData).pipe(
+      map((backendEvent) => this.transformBackendEvent(backendEvent)),
+      tap((newEvent) => {
+        this.loadingSubject.next(false);
+        // Atualizar lista de eventos
+        const currentEvents = this.eventsSubject.value;
+        this.eventsSubject.next([newEvent, ...currentEvents]);
+      }),
+      catchError((error) => {
+        console.error('Erro ao criar evento:', error);
+        this.errorSubject.next('Erro ao criar evento. Tente novamente.');
+        this.loadingSubject.next(false);
+        throw error;
+      })
+    );
   }
 
   /**
@@ -302,18 +296,16 @@ export class EventsService {
       },
     };
 
-    return this.http
-      .put<BackendEvent>(`${this.apiUrl}/${id}`, backendEventData, { withCredentials: true })
-      .pipe(
-        map((backendEvent) => this.transformBackendEvent(backendEvent)),
-        tap(() => this.loadingSubject.next(false)),
-        catchError((error) => {
-          console.error('Erro ao atualizar evento:', error);
-          this.errorSubject.next('Erro ao atualizar evento. Tente novamente.');
-          this.loadingSubject.next(false);
-          throw error;
-        })
-      );
+    return this.http.put<BackendEvent>(`${this.apiUrl}/${id}`, backendEventData).pipe(
+      map((backendEvent) => this.transformBackendEvent(backendEvent)),
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
+        console.error('Erro ao atualizar evento:', error);
+        this.errorSubject.next('Erro ao atualizar evento. Tente novamente.');
+        this.loadingSubject.next(false);
+        throw error;
+      })
+    );
   }
 
   /**
@@ -323,7 +315,7 @@ export class EventsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { withCredentials: true }).pipe(
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
         this.loadingSubject.next(false);
         // Remover da lista local

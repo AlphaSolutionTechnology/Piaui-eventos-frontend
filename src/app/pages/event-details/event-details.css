@@ -131,8 +131,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+  background: radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
   pointer-events: none;
 }
@@ -561,3 +560,444 @@
     padding: 1.5rem;
   }
 }
+
+/* Loading Container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1.5rem;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(103, 126, 234, 0.2);
+  border-top-color: #677eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  font-size: 1.1rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Error Container */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.error-container p {
+  font-size: 1.1rem;
+  color: #ef4444;
+  font-weight: 500;
+  text-align: center;
+}
+
+.retry-btn {
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #677eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(103, 126, 234, 0.25);
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(103, 126, 234, 0.4);
+}
+
+/* ============================================
+   DARK MODE STYLES
+   ============================================ */
+
+/* Root e Background Principal */
+:host.dark-mode,
+.dark-mode {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+:host.dark-mode .event-details-root,
+.dark-mode .event-details-root {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+:host.dark-mode .content-wrap,
+.dark-mode .content-wrap {
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(15, 23, 42, 1) 100%
+  );
+}
+
+/* Hero Section */
+:host.dark-mode .event-hero,
+.dark-mode .event-hero {
+  background: rgba(30, 41, 59, 0.6);
+}
+
+:host.dark-mode .event-title,
+.dark-mode .event-title {
+  color: #f1f5f9;
+}
+
+:host.dark-mode .event-category,
+.dark-mode .event-category {
+  color: #cbd5e1;
+}
+
+/* Info Items (no hero) - Sem background */
+:host.dark-mode .info-item,
+.dark-mode .info-item {
+  background: transparent;
+}
+
+:host.dark-mode .info-item svg,
+.dark-mode .info-item svg {
+  color: #94a3b8;
+}
+
+:host.dark-mode .info-item span,
+.dark-mode .info-item span {
+  color: #e2e8f0;
+}
+
+/* Cards - Background escuro com texto claro */
+:host.dark-mode .info-card,
+.dark-mode .info-card {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+:host.dark-mode .info-card h2,
+.dark-mode .info-card h2 {
+  color: #f1f5f9;
+}
+
+:host.dark-mode .info-card h3,
+.dark-mode .info-card h3 {
+  color: #e2e8f0;
+}
+
+:host.dark-mode .event-description,
+.dark-mode .event-description {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .features-list li,
+.dark-mode .features-list li {
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+/* Registration Card e Organizer Card */
+:host.dark-mode .registration-card,
+.dark-mode .registration-card,
+:host.dark-mode .organizer-card,
+.dark-mode .organizer-card {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+:host.dark-mode .price-label,
+.dark-mode .price-label {
+  color: #94a3b8;
+}
+
+:host.dark-mode .price-value,
+.dark-mode .price-value {
+  color: #f1f5f9;
+}
+
+:host.dark-mode .availability-text,
+.dark-mode .availability-text {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .availability-bar,
+.dark-mode .availability-bar {
+  background: rgba(71, 85, 105, 0.5);
+}
+
+:host.dark-mode .register-btn,
+.dark-mode .register-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+:host.dark-mode .register-btn:hover,
+.dark-mode .register-btn:hover {
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+}
+
+/* Botão Secundário (Lista de Desejos) */
+:host.dark-mode .register-btn.secondary,
+.dark-mode .register-btn.secondary {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+}
+
+:host.dark-mode .register-btn.secondary:hover,
+.dark-mode .register-btn.secondary:hover {
+  background: rgba(99, 102, 241, 0.25);
+  color: #c7d2fe;
+}
+
+/* Location Details - Sem background */
+:host.dark-mode .location-details,
+.dark-mode .location-details {
+  background: transparent;
+}
+
+:host.dark-mode .location-info p,
+.dark-mode .location-info p {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .location-info strong,
+.dark-mode .location-info strong {
+  color: #f1f5f9;
+}
+
+/* Organizer Info */
+:host.dark-mode .organizer-info p,
+.dark-mode .organizer-info p {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .organizer-info strong,
+.dark-mode .organizer-info strong {
+  color: #f1f5f9;
+}
+
+/* Share Button */
+:host.dark-mode .share-btn,
+.dark-mode .share-btn {
+  background: rgba(51, 65, 85, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  color: #cbd5e1;
+}
+
+:host.dark-mode .share-btn:hover,
+.dark-mode .share-btn:hover {
+  background: rgba(71, 85, 105, 0.6);
+  color: #f1f5f9;
+}
+
+/* Loading e Error States */
+:host.dark-mode .loading-container,
+.dark-mode .loading-container {
+  color: #e2e8f0;
+}
+
+:host.dark-mode .error-container p,
+.dark-mode .error-container p {
+  color: #fca5a5;
+}
+
+:host.dark-mode .retry-btn,
+.dark-mode .retry-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ============================================
+   MODAL DE LOGIN
+   ============================================ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.modal-icon {
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+.modal-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.75rem 0;
+}
+
+.modal-header p {
+  font-size: 1rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+.modal-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.modal-btn.secondary {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border: 2px solid rgba(99, 102, 241, 0.2);
+}
+
+.modal-btn.secondary:hover {
+  background: rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+.modal-btn.cancel {
+  background: transparent;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+}
+
+.modal-btn.cancel:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* Dark Mode - Modal */
+:host.dark-mode .modal-overlay,
+.dark-mode .modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+:host.dark-mode .modal-content,
+.dark-mode .modal-content {
+  background: #1e293b;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+:host.dark-mode .modal-header h2,
+.dark-mode .modal-header h2 {
+  color: #f1f5f9;
+}
+
+:host.dark-mode .modal-header p,
+.dark-mode .modal-header p {
+  color: #cbd5e1;
+}
+
+:host.dark-mode .modal-btn.secondary,
+.dark-mode .modal-btn.secondary {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+:host.dark-mode .modal-btn.secondary:hover,
+.dark-mode .modal-btn.secondary:hover {
+  background: rgba(99, 102, 241, 0.25);
+  color: #c7d2fe;
+}
+
+:host.dark-mode .modal-btn.cancel,
+.dark-mode .modal-btn.cancel {
+  color: #94a3b8;
+  border-color: rgba(71, 85, 105, 0.5);
+}
+
+:host.dark-mode .modal-btn.cancel:hover,
+.dark-mode .modal-btn.cancel:hover {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(71, 85, 105, 0.7);
+}
+
