@@ -346,8 +346,8 @@ export class EventsPage implements OnInit, OnDestroy {
    */
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
-    // Fallback para imagem padrão
-    img.src = '/assets/events/default-event.jpg';
+    // Fallback para imagem padrão (mesmo arquivo usado no serviço)
+    img.src = 'assets/events/evento-exemplo.svg';
     img.onerror = null; // Previne loop infinito se a imagem padrão também falhar
   }
 

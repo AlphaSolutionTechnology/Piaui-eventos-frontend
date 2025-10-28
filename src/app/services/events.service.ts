@@ -45,8 +45,9 @@ interface BackendEvent {
   eventDate: string; // ISO format: "2025-12-15T20:00:00"
   eventType: string;
   maxSubs: number;
-  subscribersCount: number;
-  eventLocation: {
+  subscribersCount?: number; // Campo opcional - pode não estar presente
+  locationId: number; // ID da localização
+  eventLocation?: { // Campo opcional - pode não estar presente na resposta
     id: number;
     placeName: string;
     fullAddress: string;
@@ -113,23 +114,29 @@ export class EventsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
+    // Validar parâmetros
+    const validatedPage = Math.max(0, Math.floor(page));
+    const validatedSize = Math.max(1, Math.min(100, Math.floor(size))); // Limitar entre 1 e 100
+
     // Construir parâmetros HTTP
     let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString())
+      .set('page', validatedPage.toString())
+      .set('size', validatedSize.toString())
       .set('sort', 'eventDate,desc'); // Ordenar por data (mais recentes primeiro)
 
-    if (filter?.search) {
-      params = params.set('search', filter.search);
+    if (filter?.search && filter.search.trim()) {
+      params = params.set('search', filter.search.trim());
     }
 
-    if (filter?.category) {
-      params = params.set('eventType', filter.category);
+    if (filter?.category && filter.category.trim()) {
+      params = params.set('eventType', filter.category.trim());
     }
 
-    // Log para debug
-    const url = `${this.apiUrl}?${params.toString()}`;
-    console.log('📡 Chamando API:', url);
+    // Log apenas em desenvolvimento
+    if (!environment.production) {
+      const url = `${this.apiUrl}?${params.toString()}`;
+      console.log('📡 Chamando API:', url);
+    }
 
     // Fazer requisição para a API (endpoint público, sem withCredentials)
     return this.http.get<SpringPageResponse<BackendEvent>>(this.apiUrl, { params }).pipe(
@@ -147,13 +154,25 @@ export class EventsService {
       }),
       catchError((error) => {
         console.error('EventsService.getEvents() - Erro ao carregar eventos:', error);
-        this.errorSubject.next('Erro ao carregar eventos. Tente novamente.');
+        
+        // Determinar mensagem de erro baseada no tipo de erro
+        let errorMessage = 'Erro ao carregar eventos. Tente novamente.';
+        
+        if (error.status === 404) {
+          errorMessage = 'Endpoint de eventos não encontrado.';
+        } else if (error.status === 500) {
+          errorMessage = 'Erro interno do servidor. Tente novamente mais tarde.';
+        } else if (error.status === 0) {
+          errorMessage = 'Erro de conexão. Verifique sua internet.';
+        } else if (error.status >= 400 && error.status < 500) {
+          errorMessage = 'Erro na requisição. Verifique os parâmetros.';
+        }
+        
+        this.errorSubject.next(errorMessage);
         this.loadingSubject.next(false);
-        return of({
-          events: [],
-          pagination: { page: 0, size, total: 0, totalPages: 0 },
-          total: 0,
-        });
+        
+        // Retornar erro em vez de dados falsos para que o componente possa lidar adequadamente
+        throw error;
       })
     );
   }
@@ -180,7 +199,38 @@ export class EventsService {
    * Transforma um evento do backend para o formato do frontend
    */
   private transformBackendEvent(backendEvent: BackendEvent): ApiEvent {
-    const eventDate = new Date(backendEvent.eventDate);
+    // Validar e criar data de forma segura
+    let eventDate: Date;
+    try {
+      eventDate = new Date(backendEvent.eventDate);
+      if (isNaN(eventDate.getTime())) {
+        console.warn('Data inválida recebida do backend:', backendEvent.eventDate);
+        eventDate = new Date(); // Fallback para data atual
+      }
+    } catch (error) {
+      console.warn('Erro ao processar data do evento:', error);
+      eventDate = new Date(); // Fallback para data atual
+    }
+
+    // Extrair informações de localização de forma segura
+    const locationName = backendEvent.eventLocation?.placeName || `Localização ${backendEvent.locationId}`;
+    const locationAddress = backendEvent.eventLocation?.fullAddress || 'Endereço não disponível';
+
+    // Validar e processar URL da imagem
+    const imageUrl = this.validateImageUrl(backendEvent.imageUrl);
+
+    // Formatar tempo de forma segura
+    let formattedTime: string;
+    try {
+      formattedTime = eventDate.toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        timeZone: 'America/Sao_Paulo'
+      });
+    } catch (error) {
+      console.warn('Erro ao formatar tempo:', error);
+      formattedTime = '00:00'; // Fallback
+    }
 
     return {
       id: backendEvent.id,
@@ -191,16 +241,16 @@ export class EventsService {
       eventType: backendEvent.eventType,
       date: backendEvent.eventDate.split('T')[0], // "2025-12-15"
       eventDate: backendEvent.eventDate,
-      time: eventDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      location: backendEvent.eventLocation.placeName,
-      address: backendEvent.eventLocation.fullAddress,
+      time: formattedTime,
+      location: locationName,
+      address: locationAddress,
       price: 0, // Backend não tem campo de preço ainda
       maxParticipants: backendEvent.maxSubs,
-      currentParticipants: backendEvent.subscribersCount,
+      currentParticipants: backendEvent.subscribersCount || 0, // Fallback para 0 se não existir
       organizerName: 'Organizador', // Backend não tem campo de organizador ainda
       organizerEmail: '',
       organizerPhone: '',
-      imageUrl: backendEvent.imageUrl || 'assets/events/evento-exemplo.svg',
+      imageUrl: imageUrl,
       tags: [], // Backend não tem tags ainda
       requiresApproval: false,
       isPublic: true,
@@ -209,6 +259,47 @@ export class EventsService {
       createdAt: backendEvent.eventDate,
       updatedAt: backendEvent.eventDate,
     };
+  }
+
+  /**
+   * Valida e processa URL da imagem, substituindo URLs de exemplo por imagem padrão
+   */
+  private validateImageUrl(imageUrl?: string): string {
+    // Se não há URL, retornar imagem padrão
+    if (!imageUrl || imageUrl.trim() === '') {
+      return 'assets/events/evento-exemplo.svg';
+    }
+
+    // Lista de domínios de exemplo que devem ser substituídos
+    const exampleDomains = [
+      'example.com',
+      'placeholder.com',
+      'via.placeholder.com',
+      'picsum.photos',
+      'loremflickr.com',
+      'dummyimage.com'
+    ];
+
+    try {
+      const url = new URL(imageUrl);
+      
+      // Verificar se é um domínio de exemplo
+      const isExampleDomain = exampleDomains.some(domain => 
+        url.hostname.includes(domain)
+      );
+
+      if (isExampleDomain) {
+        console.warn('URL de imagem de exemplo detectada, usando imagem padrão:', imageUrl);
+        return 'assets/events/evento-exemplo.svg';
+      }
+
+      // Se é uma URL válida e não é de exemplo, retornar como está
+      return imageUrl;
+    } catch (error) {
+      // Se não conseguir fazer parse da URL, usar imagem padrão
+      console.warn('URL de imagem inválida, usando imagem padrão:', imageUrl);
+      return 'assets/events/evento-exemplo.svg';
+    }
   }
 
   /**

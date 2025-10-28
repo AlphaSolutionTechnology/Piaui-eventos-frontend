@@ -145,4 +145,14 @@ export class EventDetailsPage implements OnInit, OnDestroy {
   goBack() {
     this.location.back();
   }
+
+  /**
+   * Manipula erro de carregamento de imagem
+   */
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    // Fallback para imagem padrão
+    img.src = 'assets/events/evento-exemplo.svg';
+    img.onerror = null; // Previne loop infinito se a imagem padrão também falhar
+  }
 }

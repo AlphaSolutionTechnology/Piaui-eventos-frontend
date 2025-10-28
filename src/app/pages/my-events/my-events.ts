@@ -12,12 +12,10 @@ import { Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ApiEvent } from '../../models/api-event.interface';
 import { AuthService, User } from '../../services/auth';
-import { DarkModeToggleComponent } from '../../components/dark-mode-toggle/dark-mode-toggle';
-
 @Component({
   standalone: true,
   selector: 'my-events-page',
-  imports: [CommonModule, RouterLink, DarkModeToggleComponent],
+  imports: [CommonModule, RouterLink],
   templateUrl: './my-events.html',
   styleUrl: './my-events.css',
   host: {
@@ -161,5 +159,15 @@ export class MyEventsPage implements OnInit, OnDestroy {
   deleteEvent(eventId: number): void {
     // Implementar exclusão de evento depois
     console.log('Deletar evento:', eventId);
+  }
+
+  /**
+   * Manipula erro de carregamento de imagem
+   */
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    // Fallback para imagem padrão
+    img.src = 'assets/events/evento-exemplo.svg';
+    img.onerror = null; // Previne loop infinito se a imagem padrão também falhar
   }
 }
