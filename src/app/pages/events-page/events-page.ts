@@ -556,7 +556,7 @@ export class EventsPage implements OnInit, OnDestroy {
       'linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%)', // Índigo Claro
       'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)', // Roxo/Azul Elétrico
       'linear-gradient(135deg, #7f00ff 0%, #e100ff 100%)', // Roxo Neon/Magenta
-      
+
       // Rosas e Vermelhos
       'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', // Rosa/Vermelho
       'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', // Rosa/Amarelo
@@ -564,14 +564,14 @@ export class EventsPage implements OnInit, OnDestroy {
       'linear-gradient(135deg, #ff6a88 0%, #ff99ac 100%)', // Rosa Intenso
       'linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)', // Rosa Choque/Laranja
       'linear-gradient(135deg, #fc466b 0%, #3f5efb 100%)', // Rosa/Azul
-      
+
       // Laranjas e Amarelos
       'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', // Pêssego/Laranja
       'linear-gradient(135deg, #ff8a00 0%, #e52e71 100%)', // Laranja/Rosa
       'linear-gradient(135deg, #f46b45 0%, #eea849 100%)', // Laranja Queimado
       'linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%)', // Amarelo/Turquesa
       'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)', // Laranja/Amarelo
-      
+
       // Verdes
       'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)', // Verde/Azul
       'linear-gradient(135deg, #81c784 0%, #aed581 100%)', // Verde/Verde Claro
@@ -579,38 +579,38 @@ export class EventsPage implements OnInit, OnDestroy {
       'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', // Verde Oceano/Menta
       'linear-gradient(135deg, #42e695 0%, #3bb2b8 100%)', // Verde Menta/Turquesa
       'linear-gradient(135deg, #56ab2f 0%, #a8e063 100%)', // Verde Grama
-      
+
       // Cianos e Azuis Claros
       'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', // Azul Claro/Ciano
       'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', // Verde/Ciano
       'linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%)', // Ciano/Azul Médio
       'linear-gradient(135deg, #2af598 0%, #009efd 100%)', // Verde Água/Azul
       'linear-gradient(135deg, #08aeea 0%, #2af598 100%)', // Azul Oceano/Verde Água
-      
+
       // Lavandas e Pastéis
       'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', // Verde/Rosa Claro
       'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', // Lavanda/Rosa
       'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)', // Salmão/Rosa Claro
       'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)', // Lavanda/Bege
       'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)', // Rosa Pastel/Azul Pastel
-      
+
       // Vermelhos Intensos
       'linear-gradient(135deg, #ff8a80 0%, #ffccbc 100%)', // Vermelho/Pêssego
       'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)', // Vermelho Vivo
       'linear-gradient(135deg, #dd5e89 0%, #f7bb97 100%)', // Rosa Escuro/Pêssego
-      
+
       // Tons Sunset/Tropical
       'linear-gradient(135deg, #fa8bff 0%, #2bd2ff 90%, #2bff88 100%)', // Arco-íris
       'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)', // Rosa Intenso/Coral
       'linear-gradient(135deg, #fdfc47 0%, #24fe41 100%)', // Amarelo Neon/Verde Neon
       'linear-gradient(135deg, #f83600 0%, #f9d423 100%)', // Vermelho Fogo/Dourado
       'linear-gradient(135deg, #ff4e50 0%, #f9d423 100%)', // Vermelho/Amarelo Sunset
-      
+
       // Tons Místicos/Noturnos
       'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)', // Azul Noturno
       'linear-gradient(135deg, #360033 0%, #0b8793 100%)', // Roxo Escuro/Turquesa
       'linear-gradient(135deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%)', // Roxo/Rosa/Pêssego
-      
+
       // Tons Vibrantes Extras
       'linear-gradient(135deg, #ff0099 0%, #493240 100%)', // Magenta/Roxo Escuro
       'linear-gradient(135deg, #4481eb 0%, #04befe 100%)', // Azul Céu
@@ -622,7 +622,7 @@ export class EventsPage implements OnInit, OnDestroy {
     // Usa o ID do evento para mais variação (se disponível)
     // Caso contrário usa o tipo do evento
     let hash = 0;
-    
+
     if (!eventType) {
       // Se não houver tipo, gera um número aleatório baseado no timestamp
       hash = Math.floor(Math.random() * gradients.length);
