@@ -140,4 +140,8 @@ export class EventDetailsPage implements OnInit, OnDestroy {
     this.showLoginModal = false;
     this.router.navigate(['/register']);
   }
+
+  goBack() {
+    this.router.navigate(['/events']);
+  }
 }

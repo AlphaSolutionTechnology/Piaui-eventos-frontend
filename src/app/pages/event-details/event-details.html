@@ -3,6 +3,22 @@
   <app-header [isDarkMode]="isDarkModeActive" [showDarkModeToggle]="false"></app-header>
 
   <main class="content-wrap">
+    <!-- Botão Voltar -->
+    <div class="back-button-container">
+      <button (click)="goBack()" class="back-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M19 12H5M12 19L5 12L12 5"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Voltar para Eventos
+      </button>
+    </div>
+
     <!-- Loading state -->
     @if (!showContent && !error) {
     <div class="loading-container" [attr.data-key]="renderKey">
