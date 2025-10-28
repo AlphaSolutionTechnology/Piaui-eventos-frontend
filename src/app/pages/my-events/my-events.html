@@ -137,7 +137,7 @@
       @for (event of myEvents; track event.id) {
       <div class="event-card">
         <div class="event-image">
-          <img [src]="event.imageUrl" [alt]="event.name" />
+          <img [src]="event.imageUrl" [alt]="event.name" (error)="onImageError($event)" />
           <div class="event-badge">{{ event.eventType }}</div>
         </div>
         <div class="event-content">
