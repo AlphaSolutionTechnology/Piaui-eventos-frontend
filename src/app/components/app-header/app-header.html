@@ -47,14 +47,18 @@
     <span class="brand-text text-brand" style="pointer-events: none">EventHub</span>
   </div>
   <nav class="nav">
+    <!-- Nav items podem ser adicionados aqui -->
+  </nav>
+
+  <!-- Dark Mode Toggle -->
+  <div class="header-actions">
     @if (showDarkModeToggle) {
     <dark-mode-toggle></dark-mode-toggle>
     }
-  </nav>
 
-  <!-- Botão de Login (quando não autenticado) -->
-  @if (!isAuthenticated()) {
-  <button class="login-button" (click)="navigateToLogin()">
+    <!-- Botão de Login (quando não autenticado) -->
+    @if (!isAuthenticated()) {
+    <button class="login-button" (click)="navigateToLogin()">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
       <path
         d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
@@ -170,4 +174,5 @@
     }
   </div>
   }
+  </div> <!-- Fecha .header-actions -->
 </header>

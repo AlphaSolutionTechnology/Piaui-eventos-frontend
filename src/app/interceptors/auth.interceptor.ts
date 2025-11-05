@@ -35,16 +35,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         // SEGURANÇA: 401 sempre significa sessão expirada - redirecionar imediatamente
         if (error.status === 401 && !isLoginEndpoint && !isLogoutEndpoint) {
           localStorage.removeItem('user');
-          localStorage.removeItem('authToken');
-          document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-          document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           console.log('🔒 [401] Sessão expirada - redirecionando para login');
+          console.log('ℹ️ Cookies HTTP-only (accessToken/refreshToken) gerenciados pelo backend');
           router.navigate(['/login']);
         }
         // 403 em /user/me apenas limpa dados (pode não estar autenticado)
         else if (error.status === 403 && isUserMeEndpoint) {
           localStorage.removeItem('user');
-          localStorage.removeItem('authToken');
           console.log('⚠️ [403] /user/me - dados locais limpos');
         }
         // 403 em logout é esperado (sessão já expirada)
@@ -58,10 +55,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         // SEGURANÇA: Qualquer outro 403 em endpoint protegido = sessão expirada
         else if (error.status === 403) {
           localStorage.removeItem('user');
-          localStorage.removeItem('authToken');
-          document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-          document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           console.log('🔒 [403] Acesso negado - sessão expirada ou sem permissão - redirecionando para login');
+          console.log('ℹ️ Cookies HTTP-only (accessToken/refreshToken) gerenciados pelo backend');
           router.navigate(['/login']);
         }
       }

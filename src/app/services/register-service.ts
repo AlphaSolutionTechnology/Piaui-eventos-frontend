@@ -18,6 +18,10 @@ export class RegisterService {
 
   constructor(private http: HttpClient) {}
 
+  /**
+   * Registra um novo usuário
+   * O authInterceptor adiciona automaticamente withCredentials: true para enviar cookies HTTP-only
+   */
   register(
     name: string,
     email: string,

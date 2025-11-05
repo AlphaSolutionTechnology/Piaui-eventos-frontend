@@ -87,7 +87,7 @@ export class EventDetailsPage implements OnInit, OnDestroy {
     this.eventdetailservice.getEventDetails(eventId).subscribe({
       next: (data: EventDetailResponse) => {
         this.event = data;
-        this.eventlocation = data.eventLocation;
+        this.eventlocation = data.location; // ✅ Agora usa "location"
         this.isLoading = false;
         this.showContent = true;
         this.renderKey++;

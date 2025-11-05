@@ -1,6 +1,6 @@
 <div class="event-details-root" [class.dark-mode]="isDarkModeActive">
   <!-- Header Reutilizável -->
-  <app-header [isDarkMode]="isDarkModeActive" [showDarkModeToggle]="false" [showCreateEventButton]="false"></app-header>
+  <app-header [isDarkMode]="isDarkModeActive" [showDarkModeToggle]="true" [showCreateEventButton]="false"></app-header>
 
   <main class="content-wrap">
     <!-- Botão Voltar -->
@@ -80,7 +80,7 @@
                   <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" />
                   <path d="M20 8v6M23 11l-3 3-3-3" stroke="currentColor" stroke-width="2" />
                 </svg>
-                <span>{{ event.subscribersCount }}/{{ event.maxSubs }} inscritos</span>
+                <span>{{ event.subscribedCount }}/{{ event.maxSubs }} inscritos</span>
               </div>
             </div>
           </div>
@@ -103,12 +103,12 @@
                 <p class="event-description">{{ event.description }}</p>
 
                 <!-- Informações do local -->
-                <div class="location-details" *ngIf="event.eventLocation">
+                <div class="location-details" *ngIf="event.location">
                   <h3>Localização</h3>
                   <div class="location-info">
-                    <p><strong>Endereço:</strong> {{ event.eventLocation.fullAddress }}</p>
-                    <p><strong>CEP:</strong> {{ event.eventLocation.zipCode }}</p>
-                    <p><strong>Categoria:</strong> {{ event.eventLocation.category }}</p>
+                    <p><strong>Endereço:</strong> {{ event.location.fullAddress }}</p>
+                    <p><strong>CEP:</strong> {{ event.location.zipCode }}</p>
+                    <p><strong>Categoria:</strong> {{ event.location.category }}</p>
                   </div>
                 </div>
               </div>
@@ -126,11 +126,11 @@
                   <div class="availability-bar">
                     <div
                       class="availability-fill"
-                      [style.width.%]="(event.subscribersCount / event.maxSubs) * 100"
+                      [style.width.%]="(event.subscribedCount / event.maxSubs) * 100"
                     ></div>
                   </div>
                   <span class="availability-text">
-                    {{ event.maxSubs - event.subscribersCount }} vagas restantes
+                    {{ event.maxSubs - event.subscribedCount }} vagas restantes
                   </span>
                 </div>
 

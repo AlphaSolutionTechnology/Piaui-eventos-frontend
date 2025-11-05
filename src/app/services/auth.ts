@@ -20,10 +20,26 @@ export interface AuthResponse {
 }
 
 // Interface para a resposta do endpoint /api/user/me
-// Estrutura REAL retornada pelo backend
+// Estrutura REAL retornada pelo backend:
+// {
+//   "id": 25,
+//   "name": "Andre Lucas",
+//   "email": "andrelucas_pi@proton.me",
+//   "phoneNumber": "86995855963",
+//   "role": {
+//     "roleId": 1,
+//     "roleName": "admin"
+//   }
+// }
 export interface UserMeResponse {
-  user: string; // Nome do usuário
-  role: string; // Role como string simples ("user", "admin", etc.)
+  id: number;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  role: {
+    roleId: number;
+    roleName: string;
+  };
 }
 
 // Interface do usuário para uso no frontend
@@ -32,7 +48,7 @@ export interface User {
   name: string;
   email: string;
   phoneNumber: string;
-  role: string;
+  role: string; 
   roleId: number;
   avatar?: string;
 }
@@ -59,6 +75,8 @@ export class AuthService {
 
   /**
    * Faz login do usuário
+   * O backend retorna cookies HTTP-only (accessToken e refreshToken) que são gerenciados automaticamente
+   * O authInterceptor adiciona withCredentials: true para enviar os cookies em todas as requisições
    */
   login(email: string, password: string): Observable<AuthResponse> {
     const credentials = { username: email, password };
@@ -80,19 +98,37 @@ export class AuthService {
   /**
    * Busca os dados do usuário autenticado do backend via /api/user/me
    * Este método deve ser chamado após o login ou ao inicializar o app
+   * O authInterceptor adiciona automaticamente withCredentials: true para enviar cookies HTTP-only
+   * 
+   * Backend retorna:
+   * {
+   *   "id": 25,
+   *   "name": "Andre Lucas",
+   *   "email": "andrelucas_pi@proton.me",
+   *   "phoneNumber": "86995855963",
+   *   "role": { "roleId": 1, "roleName": "admin" }
+   * }
    */
   fetchCurrentUser(): Observable<User | null> {
     return this.http.get<UserMeResponse>(`${this.apiUrl}/user/me`).pipe(
       map((response: UserMeResponse): User => {
         const user: User = {
-          id: 0, // Backend não retorna ID
-          name: response.user, // Nome vem no campo "user"
-          email: '', // Backend não retorna email
-          phoneNumber: '', // Backend não retorna telefone
-          role: this.translateRole(response.role.toUpperCase()), // Role vem como string simples
-          roleId: 0, // Backend não retorna roleId
-          avatar: '', // Backend não retorna avatar
+          id: response.id,
+          name: response.name,
+          email: response.email,
+          phoneNumber: response.phoneNumber,
+          role: this.translateRole(response.role.roleName.toUpperCase()),
+          roleId: response.role.roleId,
+          avatar: '', // Backend não retorna avatar ainda
         };
+
+        console.log('✅ Dados do usuário recebidos:', {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          roleId: user.roleId,
+        });
 
         // Atualizar BehaviorSubject
         this.currentUserSubject.next(user);
@@ -186,7 +222,8 @@ export class AuthService {
 
   /**
    * Faz logout chamando o backend e limpando dados locais
-   * O backend limpa os cookies accessToken e refreshToken (MaxAge=0)
+   * O backend limpa os cookies HTTP-only (accessToken e refreshToken) definindo MaxAge=0
+   * Cookies HTTP-only não podem ser manipulados via JavaScript, são gerenciados automaticamente pelo navegador
    * Retorna Observable para permitir que o componente aguarde a conclusão
    */
   logout(): Observable<void> {
@@ -194,21 +231,17 @@ export class AuthService {
       return of(undefined);
     }
 
-    // SEMPRE limpar cookies localmente, pois cookies HttpOnly não podem ser removidos via JS
-    // Se o backend conseguir limpar, ótimo; se não, garantimos limpeza local
-    const needsLocalCookieCleanup = true;
-
     // Chamar endpoint de logout no backend
-    // O backend irá limpar os cookies accessToken e refreshToken
+    // O backend irá limpar os cookies HTTP-only (accessToken e refreshToken)
+    // O authInterceptor adiciona automaticamente withCredentials: true
     return this.http.post(`${this.apiUrl}/auth/logout`, {}).pipe(
       tap(() => {
         console.log('✅ Logout realizado no servidor - backend tentou limpar cookies');
       }),
       catchError((error) => {
         // Se receber 403, pode ser que os cookies já expiraram ou sessão inválida
-        // Neste caso, limpamos os cookies localmente
         if (error.status === 403) {
-          console.warn('⚠️ 403 Forbidden - Sessão inválida');
+          console.warn('⚠️ 403 Forbidden - Sessão inválida ou já expirada');
         } else {
           console.error('⚠️ Erro ao chamar endpoint de logout:', error);
         }
@@ -216,8 +249,9 @@ export class AuthService {
         return of(null);
       }),
       map(() => {
-        // Limpar dados locais após resposta do servidor (ou erro)
-        this.clearLocalData(needsLocalCookieCleanup);
+        // Limpar dados locais (localStorage) após resposta do servidor
+        // Cookies HTTP-only são gerenciados automaticamente pelo backend
+        this.clearLocalData();
         return undefined;
       })
     );
@@ -225,54 +259,16 @@ export class AuthService {
 
   /**
    * Limpa apenas os dados locais (localStorage)
-   * Os cookies são limpos pelo backend via endpoint /auth/logout
-   * Em caso de erro 403, também limpa cookies localmente como fallback
+   * Os cookies HTTP-only (accessToken e refreshToken) são gerenciados automaticamente pelo backend
+   * Não podemos manipular cookies HTTP-only via JavaScript
    */
-  private clearLocalData(forceClearCookies: boolean = false): void {
+  private clearLocalData(): void {
     if (this.isBrowser) {
-      // Limpar localStorage
+      // Limpar apenas dados do localStorage
       localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-
-      // Se forceClearCookies=true ou houve erro no backend, limpar cookies localmente
-      if (forceClearCookies) {
-        console.log('🧹 Limpando cookies localmente (fallback)');
-
-        // Tentar múltiplas combinações de atributos para garantir remoção
-        const cookieNames = ['accessToken', 'refreshToken'];
-        const paths = ['/', '/api'];
-        const domains = [window.location.hostname, `.${window.location.hostname}`, ''];
-
-        cookieNames.forEach((name) => {
-          paths.forEach((path) => {
-            domains.forEach((domain) => {
-              // Tentar com diferentes combinações de atributos
-              const domainAttr = domain ? `domain=${domain};` : '';
-
-              // Versão 1: Com todos os atributos
-              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; ${domainAttr} SameSite=Strict; Secure`;
-
-              // Versão 2: Sem Secure (caso esteja em HTTP local)
-              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; ${domainAttr} SameSite=Strict`;
-
-              // Versão 3: Sem SameSite
-              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; ${domainAttr}`;
-
-              // Versão 4: Apenas path
-              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}`;
-
-              // Versão 5: Sem path nem domain
-              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC`;
-            });
-          });
-        });
-      }
-
+      
       console.log('✅ Dados locais limpos (localStorage)');
-      console.log(
-        'ℹ️ Cookies accessToken/refreshToken',
-        forceClearCookies ? 'limpos localmente' : 'foram limpos pelo backend'
-      );
+      console.log('ℹ️ Cookies accessToken/refreshToken são gerenciados automaticamente pelo backend (HTTP-only)');
     }
 
     this.currentUserSubject.next(null);
@@ -280,16 +276,11 @@ export class AuthService {
 
   /**
    * Limpa todos os dados do usuário (usado pelo interceptor em caso de 401)
+   * Cookies HTTP-only são gerenciados automaticamente pelo backend
    */
   private clearUserData(): void {
     if (this.isBrowser) {
       localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-
-      // Em caso de 401, também tentamos limpar cookies localmente como fallback
-      // (normalmente o backend já teria expirado/invalidado)
-      document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     }
 
     this.currentUserSubject.next(null);
@@ -311,31 +302,55 @@ export class AuthService {
 
   /**
    * Recupera o token de autenticação
-   * Com cookies HttpOnly, não podemos ler o token via JavaScript
-   * Retornamos null, mas o navegador envia o cookie automaticamente
+   * Com cookies HTTP-only, não podemos ler o token via JavaScript por motivos de segurança
+   * Os cookies são enviados automaticamente pelo navegador com withCredentials: true
+   * Retornamos null pois não temos acesso aos cookies HTTP-only via JavaScript
    */
   getToken(): string | null {
-    // Cookies HttpOnly não são acessíveis via JavaScript
+    // Cookies HTTP-only não são acessíveis via JavaScript
+    // O navegador envia automaticamente com withCredentials: true
     return null;
   }
 
   /**
    * Verifica se o usuário está autenticado
-   * Como usamos cookies HttpOnly, verificamos se há dados do usuário em cache
+   * Verifica tanto o BehaviorSubject (estado em memória) quanto o localStorage (persistência)
+   * Os cookies HTTP-only são gerenciados automaticamente pelo navegador
    */
   isAuthenticated(): boolean {
     if (!this.isBrowser) {
       return false;
     }
 
+    // Verificar estado em memória (BehaviorSubject)
+    const currentUser = this.currentUserSubject.value;
+    if (currentUser !== null) {
+      return true;
+    }
+
     // Verificar se há dados do usuário no localStorage
     const userJson = localStorage.getItem('user');
-    return !!userJson;
+    if (userJson) {
+      try {
+        // Se tem no localStorage mas não no BehaviorSubject, restaurar
+        const user = JSON.parse(userJson) as User;
+        this.currentUserSubject.next(user);
+        return true;
+      } catch (error) {
+        // Se der erro no parse, limpar dados corrompidos
+        console.error('Erro ao fazer parse dos dados do usuário:', error);
+        localStorage.removeItem('user');
+        return false;
+      }
+    }
+
+    return false;
   }
 
   /**
    * Atualiza o token de autenticação (refresh token)
-   * O backend gerencia os cookies automaticamente
+   * O backend gerencia os cookies HTTP-only automaticamente
+   * O authInterceptor adiciona automaticamente withCredentials: true
    */
   refreshToken(): Observable<any> {
     const refreshUrl = `${this.apiUrl}/auth/refresh`;

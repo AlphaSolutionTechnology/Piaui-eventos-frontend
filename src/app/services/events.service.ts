@@ -37,6 +37,19 @@ interface SpringPageResponse<T> {
 }
 
 // Interface para o evento do backend (EventResponse do Spring Boot)
+// Resposta real do backend:
+// {
+//   "id": 6,
+//   "name": "Tech Summit 2025",
+//   "description": "Annual tech conference",
+//   "imageUrl": "https://cdn.example.com/img/events/tech-summit.jpg",
+//   "eventDate": "2025-12-31T20:00:00",
+//   "eventType": "CONFERENCE",
+//   "maxSubs": 500,
+//   "locationId": 21,
+//   "version": 0,
+//   "subscribedCount": 0  // ⚠️ É "subscribedCount", não "subscribersCount"
+// }
 interface BackendEvent {
   id: number;
   name: string;
@@ -45,7 +58,7 @@ interface BackendEvent {
   eventDate: string; // ISO format: "2025-12-15T20:00:00"
   eventType: string;
   maxSubs: number;
-  subscribersCount?: number; // Campo opcional - pode não estar presente
+  subscribedCount?: number; 
   locationId: number; // ID da localização
   eventLocation?: { // Campo opcional - pode não estar presente na resposta
     id: number;
@@ -138,7 +151,8 @@ export class EventsService {
       console.log('📡 Chamando API:', url);
     }
 
-    // Fazer requisição para a API (endpoint público, sem withCredentials)
+    // Fazer requisição para a API
+    // O authInterceptor adiciona automaticamente withCredentials: true para enviar cookies HTTP-only
     return this.http.get<SpringPageResponse<BackendEvent>>(this.apiUrl, { params }).pipe(
       map((response) => {
         return this.transformBackendResponse(response);
@@ -246,7 +260,7 @@ export class EventsService {
       address: locationAddress,
       price: 0, // Backend não tem campo de preço ainda
       maxParticipants: backendEvent.maxSubs,
-      currentParticipants: backendEvent.subscribersCount || 0, // Fallback para 0 se não existir
+      currentParticipants: backendEvent.subscribedCount || 0, // ✅ Nome correto do backend
       organizerName: 'Organizador', // Backend não tem campo de organizador ainda
       organizerEmail: '',
       organizerPhone: '',
@@ -304,6 +318,7 @@ export class EventsService {
 
   /**
    * Busca um evento específico por ID
+   * O authInterceptor adiciona automaticamente withCredentials: true
    */
   getEventById(id: number): Observable<ApiEvent | null> {
     this.loadingSubject.next(true);
@@ -323,6 +338,7 @@ export class EventsService {
 
   /**
    * Cria um novo evento
+   * O authInterceptor adiciona automaticamente withCredentials: true
    */
   createEvent(eventData: Partial<ApiEvent>): Observable<ApiEvent> {
     this.loadingSubject.next(true);
@@ -365,6 +381,7 @@ export class EventsService {
 
   /**
    * Atualiza um evento existente
+   * O authInterceptor adiciona automaticamente withCredentials: true
    */
   updateEvent(id: number, eventData: Partial<ApiEvent>): Observable<ApiEvent> {
     this.loadingSubject.next(true);
@@ -401,6 +418,7 @@ export class EventsService {
 
   /**
    * Deleta um evento
+   * O authInterceptor adiciona automaticamente withCredentials: true
    */
   deleteEvent(id: number): Observable<void> {
     this.loadingSubject.next(true);
