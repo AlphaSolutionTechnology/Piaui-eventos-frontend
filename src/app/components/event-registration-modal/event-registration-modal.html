@@ -16,7 +16,13 @@
         </svg>
       </div>
       <h3>{{ isUserSubscribed ? 'Inscrição Cancelada!' : 'Inscrição Confirmada!' }}</h3>
-      <p>{{ isUserSubscribed ? 'Sua inscrição foi cancelada.' : 'Sua participação foi confirmada com sucesso.' }}</p>
+      <p>
+        {{
+          isUserSubscribed
+            ? 'Sua inscrição foi cancelada.'
+            : 'Sua participação foi confirmada com sucesso.'
+        }}
+      </p>
       <p class="redirect-text">Redirecionando...</p>
     </div>
     }

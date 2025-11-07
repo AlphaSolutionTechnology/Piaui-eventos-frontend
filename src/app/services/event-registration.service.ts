@@ -38,15 +38,12 @@ export class EventRegistrationService {
   public registrationError$ = this.registrationErrorSubject.asObservable();
   public isSubscribed$ = this.isSubscribedSubject.asObservable();
 
-  constructor(
-    private authService: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  constructor(private authService: AuthService, @Inject(PLATFORM_ID) private platformId: Object) {}
 
   /**
    * Inscreve um usuário em um evento
    * Endpoint: POST /api/events/{eventId}/register
-   * 
+   *
    * @param eventId - ID do evento
    * @param userId - ID do usuário
    * @returns Promise com resultado da inscrição
@@ -68,18 +65,15 @@ export class EventRegistrationService {
       };
 
       // Chamar endpoint de inscrição
-      const response = await fetch(
-        `${this.apiUrl}/events/${eventId}/register`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.getAccessToken()}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include', // Enviar cookies
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`${this.apiUrl}/events/${eventId}/register`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Enviar cookies
+        body: JSON.stringify(payload),
+      });
 
       // Tratamento de erros baseado no status HTTP
       if (!response.ok) {
@@ -102,7 +96,7 @@ export class EventRegistrationService {
   /**
    * Desinscreve um usuário de um evento
    * Endpoint: DELETE /api/events/{eventId}/register/{userId}
-   * 
+   *
    * @param eventId - ID do evento
    * @param userId - ID do usuário
    * @returns Promise com resultado da desinscrição
@@ -118,16 +112,13 @@ export class EventRegistrationService {
       }
 
       // Chamar endpoint de desinscrição
-      const response = await fetch(
-        `${this.apiUrl}/events/${eventId}/register/${userId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${this.getAccessToken()}`,
-          },
-          credentials: 'include',
-        }
-      );
+      const response = await fetch(`${this.apiUrl}/events/${eventId}/register/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${this.getAccessToken()}`,
+        },
+        credentials: 'include',
+      });
 
       // Status 204 No Content é o esperado para DELETE bem-sucedido
       if (response.status !== 204 && !response.ok) {

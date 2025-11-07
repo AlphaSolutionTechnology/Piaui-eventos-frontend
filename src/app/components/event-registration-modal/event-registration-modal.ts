@@ -16,7 +16,7 @@ export class EventRegistrationModalComponent implements OnInit {
   @Input() eventId: number = 0;
   @Input() eventName: string = '';
   @Input() isUserSubscribed = false;
-  
+
   @Output() close = new EventEmitter<void>();
   @Output() registerSuccess = new EventEmitter<void>();
   @Output() unregisterSuccess = new EventEmitter<void>();
@@ -26,7 +26,7 @@ export class EventRegistrationModalComponent implements OnInit {
   showSuccess = false;
   showError = false;
   errorMessage = '';
-  
+
   // Unsubscribe confirmation
   showConfirmUnsubscribe = false;
 
@@ -84,7 +84,7 @@ export class EventRegistrationModalComponent implements OnInit {
    */
   async onConfirmRegistration() {
     console.log('🔵 [EVENT-REGISTRATION-MODAL] Starting registration process...');
-    
+
     if (!this.validateForm()) {
       console.log('❌ [EVENT-REGISTRATION-MODAL] Form validation failed');
       return;
@@ -99,13 +99,12 @@ export class EventRegistrationModalComponent implements OnInit {
     this.isLoading = true;
 
     try {
-      console.log(`🟡 [EVENT-REGISTRATION-MODAL] Calling registerUserToEvent(eventId=${this.eventId}, userId=${this.currentUser.id})`);
-      
-      // Call the async service method
-      await this.registrationService.registerUserToEvent(
-        this.eventId,
-        this.currentUser.id
+      console.log(
+        `🟡 [EVENT-REGISTRATION-MODAL] Calling registerUserToEvent(eventId=${this.eventId}, userId=${this.currentUser.id})`
       );
+
+      // Call the async service method
+      await this.registrationService.registerUserToEvent(this.eventId, this.currentUser.id);
 
       this.isLoading = false;
       this.showSuccess = true;
@@ -146,7 +145,7 @@ export class EventRegistrationModalComponent implements OnInit {
    */
   async onConfirmUnsubscribe() {
     console.log('🔵 [EVENT-REGISTRATION-MODAL] Starting unsubscribe process...');
-    
+
     if (!this.currentUser) {
       this.showErrorMessage('Erro: Usuário não encontrado');
       console.log('❌ [EVENT-REGISTRATION-MODAL] Current user is null during unsubscribe');
@@ -156,13 +155,12 @@ export class EventRegistrationModalComponent implements OnInit {
     this.isLoading = true;
 
     try {
-      console.log(`🟡 [EVENT-REGISTRATION-MODAL] Calling unregisterUserFromEvent(eventId=${this.eventId}, userId=${this.currentUser.id})`);
-      
-      // Call the async service method
-      await this.registrationService.unregisterUserFromEvent(
-        this.eventId,
-        this.currentUser.id
+      console.log(
+        `🟡 [EVENT-REGISTRATION-MODAL] Calling unregisterUserFromEvent(eventId=${this.eventId}, userId=${this.currentUser.id})`
       );
+
+      // Call the async service method
+      await this.registrationService.unregisterUserFromEvent(this.eventId, this.currentUser.id);
 
       this.isLoading = false;
       this.showConfirmUnsubscribe = false;
