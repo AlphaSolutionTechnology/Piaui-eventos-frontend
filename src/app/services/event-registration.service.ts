@@ -59,7 +59,7 @@ export class EventRegistrationService {
       };
 
       const token = this.getAccessToken();
-      
+
       // Construir headers
       const headers: any = {
         'Content-Type': 'application/json',
@@ -220,10 +220,13 @@ export class EventRegistrationService {
       // Tentar obter do localStorage como fallback
       const token = localStorage.getItem('accessToken');
       if (token) {
-        console.log('🔐 [TOKEN] Encontrado accessToken no localStorage (', token.substring(0, 20) + '...' + ')');
+        console.log(
+          '🔐 [TOKEN] Encontrado accessToken no localStorage (',
+          token.substring(0, 20) + '...' + ')'
+        );
         return token;
       }
-      
+
       // Se não houver em localStorage, retornar vazio
       // O navegador enviará cookies automaticamente com withCredentials
       console.log('🔐 [TOKEN] Nenhum accessToken no localStorage - usando cookies HTTP-only');

@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, PLATFORM_ID, inject, HostBinding, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  PLATFORM_ID,
+  inject,
+  HostBinding,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
@@ -115,7 +123,7 @@ export class EventDetailsPage implements OnInit, OnDestroy {
    */
   private checkUserSubscription(eventId: number): void {
     const currentUser = this.authService.getCurrentUser();
-    
+
     if (!currentUser || currentUser.id === 0) {
       console.log('ℹ️ [EVENT-DETAILS] Usuário não autenticado, não verificando inscrição');
       this.isUserSubscribed = false;
@@ -126,7 +134,11 @@ export class EventDetailsPage implements OnInit, OnDestroy {
     this.eventsService.isUserSubscribedToEvent(eventId, currentUser.id).subscribe({
       next: (isSubscribed) => {
         this.isUserSubscribed = isSubscribed;
-        console.log(`📋 [EVENT-DETAILS] User subscription status: ${isSubscribed ? 'inscrito' : 'não inscrito'}`);
+        console.log(
+          `📋 [EVENT-DETAILS] User subscription status: ${
+            isSubscribed ? 'inscrito' : 'não inscrito'
+          }`
+        );
         // Trigger change detection to update button state
         this.cdr.detectChanges();
       },
@@ -135,7 +147,7 @@ export class EventDetailsPage implements OnInit, OnDestroy {
         this.isUserSubscribed = false;
         // Trigger change detection even on error
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 

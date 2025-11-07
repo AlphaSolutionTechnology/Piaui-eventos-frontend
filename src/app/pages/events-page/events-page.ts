@@ -186,11 +186,16 @@ export class EventsPage implements OnInit, OnDestroy {
   private matchTimeRange(eventDate: string, range: string): boolean {
     const { hours } = this.parseBrazilianDate(eventDate);
     switch (range) {
-      case 'morning': return hours >= 6 && hours < 12;
-      case 'afternoon': return hours >= 12 && hours < 18;
-      case 'evening': return hours >= 18 && hours < 24;
-      case 'night': return hours >= 0 && hours < 6;
-      default: return true;
+      case 'morning':
+        return hours >= 6 && hours < 12;
+      case 'afternoon':
+        return hours >= 12 && hours < 18;
+      case 'evening':
+        return hours >= 18 && hours < 24;
+      case 'night':
+        return hours >= 0 && hours < 6;
+      default:
+        return true;
     }
   }
 
@@ -215,7 +220,7 @@ export class EventsPage implements OnInit, OnDestroy {
   }
 
   hasActiveFilters(): boolean {
-    return Object.values(this.filters).some(v => v !== '');
+    return Object.values(this.filters).some((v) => v !== '');
   }
 
   toggleFilters(): void {
@@ -223,7 +228,7 @@ export class EventsPage implements OnInit, OnDestroy {
   }
 
   getActiveFiltersCount(): number {
-    return Object.values(this.filters).filter(v => v !== '').length;
+    return Object.values(this.filters).filter((v) => v !== '').length;
   }
 
   onSearchInput(event: Event): void {
@@ -253,10 +258,13 @@ export class EventsPage implements OnInit, OnDestroy {
 
     this.eventsService
       .getEvents(filters, this.currentPage, this.eventsPerPage, true)
-      .pipe(finalize(() => {
-        this.isLoadingMore = false;
-        this.cdr.detectChanges();
-      }), takeUntil(this.destroy$))
+      .pipe(
+        finalize(() => {
+          this.isLoadingMore = false;
+          this.cdr.detectChanges();
+        }),
+        takeUntil(this.destroy$)
+      )
       .subscribe({
         next: (response) => {
           if (response.events.length === 0) {
@@ -265,7 +273,7 @@ export class EventsPage implements OnInit, OnDestroy {
           }
 
           const newEvents = response.events.filter(
-            e => !this.events.some(existing => existing.id === e.id)
+            (e) => !this.events.some((existing) => existing.id === e.id)
           );
 
           this.events = [...this.events, ...newEvents];
@@ -350,7 +358,7 @@ export class EventsPage implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }
 
-    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       if (user) {
         this.user = user;
         this.cdr.detectChanges();
@@ -364,7 +372,7 @@ export class EventsPage implements OnInit, OnDestroy {
         error: (error) => {
           // Se falhar (ex: token expirado), continua sem fazer logout
           console.warn('Erro ao buscar dados do usuário, mas continua navegando:', error);
-        }
+        },
       });
     }
   }
@@ -391,10 +399,13 @@ export class EventsPage implements OnInit, OnDestroy {
 
   logout(): void {
     this.closeUserDropdown();
-    this.authService.logout().pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => this.router.navigate(['/login']),
-      error: () => this.router.navigate(['/login']),
-    });
+    this.authService
+      .logout()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.router.navigate(['/login']),
+        error: () => this.router.navigate(['/login']),
+      });
   }
 
   @HostListener('document:click', ['$event'])

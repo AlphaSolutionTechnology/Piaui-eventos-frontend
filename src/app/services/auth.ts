@@ -48,7 +48,7 @@ export interface User {
   name: string;
   email: string;
   phoneNumber: string;
-  role: string; 
+  role: string;
   roleId: number;
   avatar?: string;
 }
@@ -99,7 +99,7 @@ export class AuthService {
    * Busca os dados do usuário autenticado do backend via /api/user/me
    * Este método deve ser chamado após o login ou ao inicializar o app
    * O authInterceptor adiciona automaticamente withCredentials: true para enviar cookies HTTP-only
-   * 
+   *
    * Backend retorna:
    * {
    *   "id": 25,
@@ -108,7 +108,7 @@ export class AuthService {
    *   "phoneNumber": "86995855963",
    *   "role": { "roleId": 1, "roleName": "admin" }
    * }
-   * 
+   *
    * ⚠️ IMPORTANTE: Este método PROPAGA o erro 401/403 para que o guard possa tratá-lo
    * O guard sabe quando há erro vs quando não há sessão
    */
@@ -146,7 +146,9 @@ export class AuthService {
       catchError((error) => {
         // ⚠️ IMPORTANTE: Limpar dados se receber 401/403
         if (error.status === 401 || error.status === 403) {
-          console.warn(`⚠️ [fetchCurrentUser] ${error.status} - Sessão inválida ou cookies expirados`);
+          console.warn(
+            `⚠️ [fetchCurrentUser] ${error.status} - Sessão inválida ou cookies expirados`
+          );
           this.clearUserData();
         } else {
           console.error('❌ Erro ao buscar dados do usuário:', error);
@@ -270,9 +272,11 @@ export class AuthService {
     if (this.isBrowser) {
       // Limpar apenas dados do localStorage
       localStorage.removeItem('user');
-      
+
       console.log('✅ Dados locais limpos (localStorage)');
-      console.log('ℹ️ Cookies accessToken/refreshToken são gerenciados automaticamente pelo backend (HTTP-only)');
+      console.log(
+        'ℹ️ Cookies accessToken/refreshToken são gerenciados automaticamente pelo backend (HTTP-only)'
+      );
     }
 
     this.currentUserSubject.next(null);

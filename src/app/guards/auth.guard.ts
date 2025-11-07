@@ -16,7 +16,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   if (authService.isAuthenticated()) {
     // Usuário autenticado - permitir acesso
     console.log('✅ [AuthGuard] Usuário autenticado - permitindo acesso');
-    
+
     // Validar sessão em background (não bloqueia navegação)
     authService.fetchCurrentUser().subscribe({
       error: (error) => {
@@ -26,7 +26,7 @@ export const authGuard: CanActivateFn = (route, state) => {
         }
       },
     });
-    
+
     return true;
   }
 
@@ -49,7 +49,7 @@ export const authGuard: CanActivateFn = (route, state) => {
       // 🔑 REGRA IMPORTANTE:
       // - 401 (Unauthorized): Token inválido, mas pode tentar refresh
       // - 403 (Forbidden): Sessão completamente inválida, NÃO tente refresh
-      
+
       if (error && error.status === 401) {
         // Token pode estar expirado, tentar renovar via refresh
         console.log('🔒 [AuthGuard] 401 Unauthorized - tentando refresh token...');
@@ -61,14 +61,20 @@ export const authGuard: CanActivateFn = (route, state) => {
                   console.log('✅ [AuthGuard] Sessão restaurada via refresh - permitindo acesso');
                   return true;
                 }
-                console.log('⚠️ [AuthGuard] Refresh não retornou usuário - redirecionando para login');
+                console.log(
+                  '⚠️ [AuthGuard] Refresh não retornou usuário - redirecionando para login'
+                );
                 router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
                 return false;
               })
             )
           ),
           catchError((refreshError) => {
-            console.warn('❌ [AuthGuard] Falha ao renovar sessão (refresh retornou', refreshError?.status, ')');
+            console.warn(
+              '❌ [AuthGuard] Falha ao renovar sessão (refresh retornou',
+              refreshError?.status,
+              ')'
+            );
             router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
             return of(false);
           })
@@ -77,7 +83,9 @@ export const authGuard: CanActivateFn = (route, state) => {
 
       if (error && error.status === 403) {
         // 403 = Sessão inválida/expirada, não tente refresh
-        console.log('🔒 [AuthGuard] 403 Forbidden - Sessão inválida/expirada - redirecionando para login');
+        console.log(
+          '🔒 [AuthGuard] 403 Forbidden - Sessão inválida/expirada - redirecionando para login'
+        );
         router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
         return of(false);
       }
@@ -106,7 +114,7 @@ export const softAuthGuard: CanActivateFn = (route, state) => {
 
   // Tentar validar via cookies, mas não redireciona se falhar
   console.log('🔍 [SoftAuthGuard] Tentando restaurar sessão via cookies...');
-  
+
   return authService.fetchCurrentUser().pipe(
     map((user) => {
       if (user) {
@@ -117,7 +125,10 @@ export const softAuthGuard: CanActivateFn = (route, state) => {
       return true; // ✅ SEMPRE permite acesso
     }),
     catchError((error) => {
-      console.warn('⚠️ [SoftAuthGuard] Erro ao validar cookies, mas permitindo acesso:', error.status);
+      console.warn(
+        '⚠️ [SoftAuthGuard] Erro ao validar cookies, mas permitindo acesso:',
+        error.status
+      );
       return of(true); // ✅ SEMPRE permite acesso mesmo com erro
     })
   );
@@ -146,7 +157,7 @@ export const roleGuard = (requiredRole: string): CanActivateFn => {
 
     // Não autenticado - tentar validar via cookies HTTP-only
     console.log('🔍 [RoleGuard] Tentando validar sessão via cookies HTTP-only...');
-    
+
     return authService.fetchCurrentUser().pipe(
       map((user) => {
         if (user && authService.hasRole(requiredRole)) {

@@ -1,4 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnInit, Inject, PLATFORM_ID, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  Inject,
+  PLATFORM_ID,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EventRegistrationService } from '../../services/event-registration.service';
@@ -47,9 +57,9 @@ export class EventRegistrationModalComponent implements OnInit {
 
   ngOnInit() {
     this.currentUser = this.authService.getCurrentUser();
-    
+
     // Subscrever a mudanças no usuário
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe((user) => {
       if (user) {
         this.currentUser = user;
       }
@@ -129,7 +139,6 @@ export class EventRegistrationModalComponent implements OnInit {
       // Fechar modal imediatamente
       this.registerSuccess.emit();
       this.closeModal();
-      
     } catch (error: any) {
       console.log('❌ [EVENT-REGISTRATION-MODAL] Catch block triggered', error);
       this.isLoading = false;
@@ -192,7 +201,6 @@ export class EventRegistrationModalComponent implements OnInit {
       // Fechar modal imediatamente
       this.unregisterSuccess.emit();
       this.closeModal();
-      
     } catch (error: any) {
       console.log('❌ [EVENT-REGISTRATION-MODAL] Catch block triggered', error);
       this.isLoading = false;

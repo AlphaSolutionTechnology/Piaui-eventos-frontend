@@ -45,24 +45,24 @@ export class MyEventsPage implements OnInit, OnDestroy {
   };
 
   isUserDropdownOpen = false;
-  
+
   // Tab management
   activeTab: EventTab = 'created';
-  
+
   // Events data
   createdEvents: ApiEvent[] = [];
   registeredEvents: ApiEvent[] = [];
-  
+
   isLoading = true;
   error: string | null = null;
 
   // Unsubscribe state
   unsubscribeLoading: { [key: number]: boolean } = {};
   unsubscribeError: { [key: number]: string | null } = {};
-  
+
   // Success message state
   unsubscribeSuccess: { [key: number]: boolean } = {};
-  
+
   // Unsubscribe confirmation modal
   unsubscribeConfirmation: { [key: number]: boolean } = {};
 
@@ -122,18 +122,16 @@ export class MyEventsPage implements OnInit, OnDestroy {
   }
 
   loadUserData(): void {
-    this.authService.currentUser$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((user) => {
-        if (user) {
-          this.user = user;
-          console.log('👤 [MY-EVENTS] Usuário carregado:', user.name, '(ID:', user.id, ')');
-          this.cdr.detectChanges();
-          
-          // Carregar eventos apenas quando usuário estiver pronto
-          this.loadMyEvents();
-        }
-      });
+    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
+      if (user) {
+        this.user = user;
+        console.log('👤 [MY-EVENTS] Usuário carregado:', user.name, '(ID:', user.id, ')');
+        this.cdr.detectChanges();
+
+        // Carregar eventos apenas quando usuário estiver pronto
+        this.loadMyEvents();
+      }
+    });
   }
 
   loadMyEvents(): void {
@@ -165,7 +163,7 @@ export class MyEventsPage implements OnInit, OnDestroy {
         this.error = 'Erro ao carregar eventos criados.';
         this.isLoading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -183,7 +181,7 @@ export class MyEventsPage implements OnInit, OnDestroy {
         this.error = null; // Don't show error for now
         this.isLoading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -258,7 +256,7 @@ export class MyEventsPage implements OnInit, OnDestroy {
    * Confirma e executa a deleção do evento
    * Endpoint: DELETE /api/events/{id}
    * Remove o evento da lista imediatamente após sucesso
-   * 
+   *
    * @param eventId - ID do evento a deletar
    */
   confirmDelete(eventId: number): void {
@@ -281,8 +279,8 @@ export class MyEventsPage implements OnInit, OnDestroy {
         console.log('✅ [MY-EVENTS] Evento deletado com sucesso');
 
         // Remover evento da lista imediatamente
-        this.createdEvents = this.createdEvents.filter(e => e.id !== eventId);
-        
+        this.createdEvents = this.createdEvents.filter((e) => e.id !== eventId);
+
         // Mostrar mensagem de sucesso
         this.deleteSuccess[eventId] = true;
         this.deleteLoading[eventId] = false;
@@ -301,9 +299,9 @@ export class MyEventsPage implements OnInit, OnDestroy {
       error: (error: any) => {
         this.deleteLoading[eventId] = false;
         this.deleteConfirmation[eventId] = false;
-        
+
         let errorMsg = 'Erro ao deletar evento. Tente novamente.';
-        
+
         if (error?.error?.message) {
           errorMsg = error.error.message;
         } else if (error?.status === 404) {
@@ -315,13 +313,13 @@ export class MyEventsPage implements OnInit, OnDestroy {
         } else if (error?.status === 500) {
           errorMsg = 'Erro no servidor. Tente novamente mais tarde.';
         }
-        
+
         this.deleteError[eventId] = errorMsg;
         console.error(`❌ [MY-EVENTS] Erro ao deletar evento: ${errorMsg}`, error);
-        
+
         this.cdr.detectChanges();
         this.toastService.error(errorMsg);
-      }
+      },
     });
   }
 
@@ -348,7 +346,7 @@ export class MyEventsPage implements OnInit, OnDestroy {
    * Cancela a inscrição do usuário em um evento
    * Endpoint: DELETE /api/events/{eventId}/register/{userId}
    * Remove o evento da lista imediatamente após sucesso
-   * 
+   *
    * @param eventId - ID do evento
    */
   confirmUnsubscribe(eventId: number): void {
@@ -385,8 +383,8 @@ export class MyEventsPage implements OnInit, OnDestroy {
       console.log('✅ [MY-EVENTS] Desinscrição bem-sucedida');
 
       // Remover evento da lista imediatamente
-      this.registeredEvents = this.registeredEvents.filter(e => e.id !== eventId);
-      
+      this.registeredEvents = this.registeredEvents.filter((e) => e.id !== eventId);
+
       // Mostrar mensagem de sucesso por 3 segundos
       this.unsubscribeSuccess[eventId] = true;
       this.unsubscribeLoading[eventId] = false;
@@ -400,13 +398,12 @@ export class MyEventsPage implements OnInit, OnDestroy {
         this.unsubscribeSuccess[eventId] = false;
         this.cdr.detectChanges();
       }, 3000);
-
     } catch (error: any) {
       // Erro no cancelamento
       this.unsubscribeLoading[eventId] = false;
       const errorMsg = error?.message || 'Erro ao cancelar inscrição. Tente novamente.';
       this.unsubscribeError[eventId] = errorMsg;
-      
+
       console.error(`❌ [MY-EVENTS] Erro ao desinscrever: ${errorMsg}`);
       this.toastService.error(errorMsg);
       this.cdr.detectChanges();
@@ -418,15 +415,13 @@ export class MyEventsPage implements OnInit, OnDestroy {
    * Cancela a inscrição do usuário em um evento
    * Endpoint: DELETE /api/events/{eventId}/register/{userId}
    * Remove o evento da lista imediatamente após sucesso
-   * 
+   *
    * @param eventId - ID do evento
    */
   async cancelEventSubscription(eventId: number): Promise<void> {
     // Confirmação antes de cancelar
-    const confirmed = window.confirm(
-      'Tem certeza que deseja cancelar sua inscrição neste evento?'
-    );
-    
+    const confirmed = window.confirm('Tem certeza que deseja cancelar sua inscrição neste evento?');
+
     if (!confirmed) {
       console.log('❌ Cancelamento de inscrição abortado pelo usuário');
       return;
