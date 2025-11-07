@@ -10,6 +10,7 @@ import { EventsPage } from './pages/events-page/events-page';
 import { EventDetailsPage } from './pages/event-details/event-details';
 import { CreateEventComponent } from './pages/create-event/create-event';
 import { MyEventsPage } from './pages/my-events/my-events';
+import { SettingsPage } from './pages/settings/settings';
 
 // Guards
 import { authGuard } from './guards/auth.guard';
@@ -56,6 +57,12 @@ export const routes: Routes = [
     component: CreateEventComponent,
     canActivate: [authGuard],
     title: 'Criar Evento - Piauí Eventos',
+  },
+  {
+    path: 'settings',
+    component: SettingsPage,
+    canActivate: [authGuard],
+    title: 'Configurações - Piauí Eventos',
   },
 
   // === ROTA WILDCARD (SEMPRE POR ÚLTIMO) ===

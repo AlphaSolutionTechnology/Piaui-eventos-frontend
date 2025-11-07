@@ -4,8 +4,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../../enviroment';
 import { User } from './auth';
+import { UserUpdateDTO, PasswordUpdateDTO } from '../models/user-update.dto';
 
-// Interface para atualização de perfil
+// Legacy interface - keeping for backwards compatibility
 export interface UpdateProfileRequest {
   name?: string;
   email?: string;
@@ -73,11 +74,11 @@ export class UserService {
   }
 
   /**
-   * Atualiza o perfil do usuário
-   * O authInterceptor adiciona automaticamente withCredentials: true para enviar cookies HTTP-only
+   * Atualiza o perfil do usuário usando UserUpdateDTO
+   * Endpoint: PUT /api/user/me
    */
-  updateUserProfile(data: UpdateProfileRequest): Observable<UserProfileResponse> {
-    return this.http.put<UserProfileResponse>(`${this.apiUrl}/user/profile`, data).pipe(
+  updateUser(data: UserUpdateDTO): Observable<UserProfileResponse> {
+    return this.http.put<UserProfileResponse>(`${this.apiUrl}/user/me`, data).pipe(
       tap((response) => {
         console.log('✅ Perfil atualizado com sucesso');
 
@@ -104,6 +105,34 @@ export class UserService {
         return throwError(() => error);
       })
     );
+  }
+
+  /**
+   * Atualiza a senha do usuário usando PasswordUpdateDTO
+   * Endpoint: PUT /api/user/me/password
+   */
+  updatePassword(data: PasswordUpdateDTO): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/user/me/password`, data).pipe(
+      tap(() => {
+        console.log('✅ Senha atualizada com sucesso');
+      }),
+      catchError((error) => {
+        console.error('Erro ao atualizar senha:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Legacy method - keeping for backwards compatibility
+   * @deprecated Use updateUser() instead
+   */
+  updateUserProfile(data: UpdateProfileRequest): Observable<UserProfileResponse> {
+    return this.updateUser({
+      name: data.name,
+      email: data.email,
+      phoneNumber: data.phoneNumber
+    });
   }
 
   /**
