@@ -10,6 +10,7 @@ export interface ApiEvent {
   time: string;
   location: string;
   address: string;
+  zipCode?: string; // CEP
   price: number;
   maxParticipants: number;
   currentParticipants: number;

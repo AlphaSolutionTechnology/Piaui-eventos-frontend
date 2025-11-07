@@ -92,14 +92,46 @@
     <!-- Page Title -->
     <div class="page-header">
       <h1 class="page-title">Meus Eventos</h1>
-      <p class="page-subtitle">Acompanhe os eventos que você criou</p>
+      <p class="page-subtitle">Gerencie os eventos que você criou e acompanhe suas inscrições</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'created'"
+        (click)="switchTab('created')"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Eventos Criados
+        @if (createdEvents.length > 0) {
+        <span class="tab-badge">{{ createdEvents.length }}</span>
+        }
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'registered'"
+        (click)="switchTab('registered')"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" />
+          <path d="M20 8v6M23 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Minhas Inscrições
+        @if (registeredEvents.length > 0) {
+        <span class="tab-badge">{{ registeredEvents.length }}</span>
+        }
+      </button>
     </div>
 
     <!-- Loading State -->
     @if (isLoading) {
     <div class="loading-container">
       <div class="loading-spinner"></div>
-      <p>Carregando seus eventos...</p>
+      <p>Carregando eventos...</p>
     </div>
     }
 
@@ -116,8 +148,8 @@
     </div>
     }
 
-    <!-- Empty State -->
-    @if (!isLoading && !error && myEvents.length === 0) {
+    <!-- Empty State - Created Events -->
+    @if (!isLoading && !error && activeTab === 'created' && currentEvents.length === 0) {
     <div class="empty-state">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2" />
@@ -131,10 +163,23 @@
     </div>
     }
 
+    <!-- Empty State - Registered Events -->
+    @if (!isLoading && !error && activeTab === 'registered' && currentEvents.length === 0) {
+    <div class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" />
+        <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" />
+      </svg>
+      <h2>Nenhuma inscrição ainda</h2>
+      <p>Explore eventos disponíveis e faça sua primeira inscrição</p>
+      <a routerLink="/events" class="create-btn">Explorar Eventos</a>
+    </div>
+    }
+
     <!-- Events Grid -->
-    @if (!isLoading && !error && myEvents.length > 0) {
+    @if (!isLoading && !error && currentEvents.length > 0) {
     <div class="events-grid">
-      @for (event of myEvents; track event.id) {
+      @for (event of currentEvents; track event.id) {
       <div class="event-card">
         <div class="event-image">
           <img [src]="event.imageUrl" [alt]="event.name" (error)="onImageError($event)" />
@@ -161,8 +206,13 @@
           </div>
           <div class="event-actions">
             <button (click)="viewEventDetails(event.id)" class="btn btn-primary">Visualizar</button>
+            @if (activeTab === 'created') {
             <button (click)="editEvent(event.id)" class="btn btn-secondary">Editar</button>
             <button (click)="deleteEvent(event.id)" class="btn btn-danger">Deletar</button>
+            }
+            @if (activeTab === 'registered') {
+            <button (click)="deleteEvent(event.id)" class="btn btn-danger">Cancelar Inscrição</button>
+            }
           </div>
         </div>
       </div>

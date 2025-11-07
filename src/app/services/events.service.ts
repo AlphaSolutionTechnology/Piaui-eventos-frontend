@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'rxjs';
 import { ApiEvent, EventsFilter, EventsResponse } from '../models/api-event.interface';
+import { EventRequestDTO, EventResponseDTO, EventLocationDTO } from '../models/event-request.dto';
+import { ViaCepResponse } from '../models/viacep-response.interface';
 import { environment } from '../../../enviroment';
 
 interface SpringPageResponse<T> {
@@ -55,6 +57,7 @@ interface BackendLocationPayload {
 })
 export class EventsService {
   private readonly apiUrl = `${environment.API_URL}/events`;
+  private readonly locationUrl = `${environment.API_URL}/location`;
 
   private loadingSubject = new BehaviorSubject<boolean>(false);
   private errorSubject = new BehaviorSubject<string | null>(null);
@@ -127,20 +130,21 @@ export class EventsService {
     );
   }
 
-  createEvent(eventData: Partial<ApiEvent>): Observable<ApiEvent> {
+  createEvent(eventData: Partial<ApiEvent>, userId: number): Observable<ApiEvent> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
-    const payload = this.mapToBackendEvent(eventData);
+    const payload = this.mapToEventRequestDTO(eventData, userId);
 
-    return this.http.post<BackendEvent>(this.apiUrl, payload).pipe(
-      map(event => this.transformBackendEvent(event)),
+    return this.http.post<EventResponseDTO>(this.apiUrl, payload).pipe(
+      map(event => this.transformEventResponseToApiEvent(event)),
       tap(newEvent => {
         this.loadingSubject.next(false);
         this.eventsSubject.next([newEvent, ...this.eventsSubject.value]);
       }),
       catchError(error => {
         this.loadingSubject.next(false);
-        this.errorSubject.next('Erro ao criar evento.');
+        const errorMessage = this.getCreateEventErrorMessage(error);
+        this.errorSubject.next(errorMessage);
         return throwError(() => error);
       })
     );
@@ -199,6 +203,74 @@ export class EventsService {
 
   getEventTypes(): Observable<string[]> {
     return this.getCategories();
+  }
+
+  /**
+   * Get address by CEP (ZIP code) using ViaCEP API
+   * @param cep ZIP code (CEP) in format XXXXX-XXX or XXXXXXXX
+   */
+  getAddressByCep(cep: string): Observable<ViaCepResponse> {
+    // Remove any non-numeric characters from CEP
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    return this.http.get<ViaCepResponse>(`${this.locationUrl}/${cleanCep}`).pipe(
+      catchError(error => {
+        console.error('Error fetching address by CEP:', error);
+        return throwError(() => new Error('CEP não encontrado ou inválido.'));
+      })
+    );
+  }
+
+  /**
+   * Get events created by a specific user
+   * @param userId User ID
+   * @param page Page number (0-indexed)
+   * @param size Page size
+   */
+  getEventsByUser(userId: number, page: number = 0, size: number = 10): Observable<EventsResponse> {
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', 'eventDate,desc');
+
+    return this.http.get<SpringPageResponse<BackendEvent>>(`${this.apiUrl}/user/${userId}`, { params }).pipe(
+      map(response => this.transformBackendResponse(response)),
+      tap(() => this.loadingSubject.next(false)),
+      catchError(error => {
+        this.loadingSubject.next(false);
+        this.errorSubject.next('Erro ao carregar eventos criados.');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Get events that the user is subscribed to
+   * @param userId User ID
+   * @param page Page number (0-indexed)
+   * @param size Page size
+   */
+  getRegisteredEvents(userId: number, page: number = 0, size: number = 10): Observable<EventsResponse> {
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', 'eventDate');
+
+    return this.http.get<SpringPageResponse<BackendEvent>>(`${this.apiUrl}/subscribed/user/${userId}`, { params }).pipe(
+      map(response => this.transformBackendResponse(response)),
+      tap(() => this.loadingSubject.next(false)),
+      catchError(error => {
+        this.loadingSubject.next(false);
+        this.errorSubject.next('Erro ao carregar eventos inscritos.');
+        return throwError(() => error);
+      })
+    );
   }
 
   resetLoading(): void {
@@ -309,5 +381,95 @@ export class EventsService {
     if (error.status === 404) return 'Serviço indisponível.';
     if (error.status === 500) return 'Erro no servidor.';
     return 'Ocorreu um erro. Tente novamente.';
+  }
+
+  /**
+   * Maps frontend ApiEvent data to EventRequestDTO format for API
+   * Converts date and time to LocalDateTime format (ISO 8601)
+   */
+  private mapToEventRequestDTO(data: Partial<ApiEvent>, createdBy: number): EventRequestDTO {
+    const date = data.date || '';
+    const time = data.time || '00:00';
+    
+    // Convert to LocalDateTime format: "yyyy-MM-ddTHH:mm:ss"
+    const eventDateTime = `${date}T${time}:00`;
+
+    const locationDTO: EventLocationDTO = {
+      placeName: data.location || '',
+      fullAddress: data.address || '',
+      zipCode: data.zipCode || '',
+      latitude: '0',
+      longitude: '0',
+      category: data.category || 'OTHER'
+    };
+
+    return {
+      name: data.title || data.name || '',
+      description: data.description || '',
+      imageUrl: data.imageUrl || 'assets/events/evento-exemplo.svg',
+      eventDate: eventDateTime,
+      eventType: data.eventType || data.category || '',
+      maxSubs: data.maxParticipants ?? 0,
+      createdBy: createdBy,
+      location: locationDTO
+    };
+  }
+
+  /**
+   * Transforms EventResponseDTO from API to ApiEvent format for frontend
+   */
+  private transformEventResponseToApiEvent(response: EventResponseDTO): ApiEvent {
+    // Parse LocalDateTime format back to date and time
+    const [datePart, timePart] = response.eventDate.split('T');
+    const time = timePart ? timePart.substring(0, 5) : '00:00'; // Extract HH:mm
+
+    return {
+      id: response.id,
+      title: response.name,
+      name: response.name,
+      description: response.description,
+      category: response.eventType,
+      eventType: response.eventType,
+      date: datePart,
+      eventDate: response.eventDate,
+      time: time,
+      location: response.location.placeName,
+      address: response.location.fullAddress,
+      price: 0,
+      maxParticipants: response.maxSubs,
+      currentParticipants: response.subscribedCount || 0,
+      organizerName: 'Organizador',
+      organizerEmail: '',
+      organizerPhone: '',
+      imageUrl: this.validateImageUrl(response.imageUrl),
+      tags: [],
+      requiresApproval: false,
+      isPublic: true,
+      allowWaitlist: false,
+      status: 'published',
+      createdAt: response.eventDate,
+      updatedAt: response.eventDate
+    };
+  }
+
+  /**
+   * Get specific error message for event creation failures
+   */
+  private getCreateEventErrorMessage(error: any): string {
+    if (error.status === 0) {
+      return 'Sem conexão com a internet. Verifique sua conexão e tente novamente.';
+    }
+    if (error.status === 400) {
+      // Validation error
+      const errorMsg = error.error?.message || error.error?.error;
+      return errorMsg || 'Dados inválidos. Verifique os campos e tente novamente.';
+    }
+    if (error.status === 401 || error.status === 403) {
+      return 'Você não tem permissão para criar eventos. Faça login novamente.';
+    }
+    if (error.status === 500) {
+      return 'Erro no servidor ao criar evento. Tente novamente mais tarde.';
+    }
+    return 'Erro ao criar evento. Verifique os dados e tente novamente.';
   }
 }

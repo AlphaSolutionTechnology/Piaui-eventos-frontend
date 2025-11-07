@@ -186,6 +186,38 @@
             </div>
 
             <div class="form-group">
+              <label for="zipCode">CEP *</label>
+              <div class="cep-input-wrapper">
+                <input
+                  type="text"
+                  id="zipCode"
+                  name="zipCode"
+                  [(ngModel)]="createEventForm.zipCode"
+                  (input)="onCepInput($event)"
+                  required
+                  placeholder="00000-000"
+                  maxlength="9"
+                  [class.error]="cepError"
+                  [class.loading]="isLoadingAddress"
+                />
+                <span class="input-icon" *ngIf="isLoadingAddress">
+                  <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity="0.25"/>
+                    <path d="M12 2C6.47715 2 2 6.47715 2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </span>
+                <span class="input-icon success" *ngIf="!isLoadingAddress && createEventForm.address && !cepError">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 6L9 17L4 12" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </div>
+              <small *ngIf="cepError" class="error-text">{{ cepError }}</small>
+              <small *ngIf="!cepError && !isLoadingAddress" class="help-text">O endereço será preenchido automaticamente ao digitar o CEP</small>
+              <small *ngIf="isLoadingAddress" class="help-text">Buscando endereço...</small>
+            </div>
+
+            <div class="form-group">
               <label for="location">Nome do Local *</label>
               <input
                 type="text"
@@ -199,14 +231,25 @@
 
             <div class="form-group">
               <label for="address">Endereço Completo *</label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                [(ngModel)]="createEventForm.address"
-                required
-                placeholder="Rua, número, bairro, cidade - PI"
-              />
+              <div class="input-with-validation">
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  [(ngModel)]="createEventForm.address"
+                  required
+                  placeholder="Rua, número, bairro, cidade - PI"
+                  [class.valid]="createEventForm.address && !cepError"
+                  [readonly]="isLoadingAddress"
+                />
+                <span class="input-icon success" *ngIf="createEventForm.address && !cepError && !isLoadingAddress">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 6L9 17L4 12" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </div>
+              <small class="help-text" *ngIf="!createEventForm.address">Será preenchido automaticamente ao digitar o CEP</small>
+              <small class="help-text success" *ngIf="createEventForm.address && !cepError">✓ Endereço preenchido automaticamente</small>
             </div>
 
             <div class="form-row">
@@ -315,14 +358,26 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="organizerEmail">E-mail de Contato *</label>
-                <input
-                  type="email"
-                  id="organizerEmail"
-                  name="organizerEmail"
-                  [(ngModel)]="createEventForm.organizerEmail"
-                  required
-                  placeholder="contato@exemplo.com"
-                />
+                <div class="input-with-validation">
+                  <input
+                    type="email"
+                    id="organizerEmail"
+                    name="organizerEmail"
+                    [(ngModel)]="createEventForm.organizerEmail"
+                    (input)="validateEmail()"
+                    (blur)="validateEmail()"
+                    required
+                    placeholder="contato@exemplo.com"
+                    [class.error]="emailError"
+                    [class.valid]="isEmailValid()"
+                  />
+                  <span class="input-icon success" *ngIf="isEmailValid() && !emailError">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17L4 12" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                </div>
+                <small *ngIf="emailError" class="error-text">{{ emailError }}</small>
               </div>
 
               <div class="form-group">
@@ -332,9 +387,12 @@
                   id="organizerPhone"
                   name="organizerPhone"
                   [(ngModel)]="createEventForm.organizerPhone"
+                  (input)="formatPhone($event)"
                   required
                   placeholder="(86) 99999-9999"
+                  maxlength="15"
                 />
+                <small class="help-text">Formato: (DDD) XXXXX-XXXX</small>
               </div>
             </div>
 

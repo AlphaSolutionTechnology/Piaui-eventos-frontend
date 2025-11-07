@@ -324,6 +324,110 @@
   display: block;
 }
 
+.form-group small.error-text {
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+.form-group small.help-text {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.form-group small.help-text.success {
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.form-group input.error {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.form-group input.valid {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.form-group input.loading {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Input with validation wrapper */
+.input-with-validation {
+  position: relative;
+  width: 100%;
+}
+
+.input-with-validation input {
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.input-with-validation .input-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.input-with-validation .input-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.input-with-validation .input-icon.success svg {
+  color: #4ade80;
+}
+
+/* CEP Input with Icon */
+.cep-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.cep-input-wrapper input {
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.cep-input-wrapper .input-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.cep-input-wrapper .input-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cep-input-wrapper .input-icon.success svg {
+  color: #4ade80;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
 .char-count {
   position: absolute;
   top: 0.5rem;

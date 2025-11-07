@@ -12,6 +12,9 @@ import { Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ApiEvent } from '../../models/api-event.interface';
 import { AuthService, User } from '../../services/auth';
+import { EventsService } from '../../services/events.service';
+
+type EventTab = 'created' | 'registered';
 @Component({
   standalone: true,
   selector: 'my-events-page',
@@ -38,12 +41,20 @@ export class MyEventsPage implements OnInit, OnDestroy {
   };
 
   isUserDropdownOpen = false;
-  myEvents: ApiEvent[] = [];
+  
+  // Tab management
+  activeTab: EventTab = 'created';
+  
+  // Events data
+  createdEvents: ApiEvent[] = [];
+  registeredEvents: ApiEvent[] = [];
+  
   isLoading = true;
   error: string | null = null;
 
   constructor(
     private authService: AuthService,
+    private eventsService: EventsService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -103,17 +114,62 @@ export class MyEventsPage implements OnInit, OnDestroy {
   }
 
   loadMyEvents(): void {
+    if (!this.user || this.user.id === 0) {
+      console.error('User not loaded yet');
+      return;
+    }
+
     this.isLoading = true;
     this.error = null;
 
-    // Simular carregamento de eventos do usuário
-    // Você pode conectar isto a um serviço real depois
-    setTimeout(() => {
-      // Placeholder: Sem eventos por enquanto
-      this.myEvents = [];
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    }, 1000);
+    if (this.activeTab === 'created') {
+      this.loadCreatedEvents();
+    } else {
+      this.loadRegisteredEvents();
+    }
+  }
+
+  loadCreatedEvents(): void {
+    this.eventsService.getEventsByUser(this.user.id).subscribe({
+      next: (response) => {
+        this.createdEvents = response.events;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading created events:', error);
+        this.error = 'Erro ao carregar eventos criados.';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadRegisteredEvents(): void {
+    this.eventsService.getRegisteredEvents(this.user.id).subscribe({
+      next: (response) => {
+        this.registeredEvents = response.events;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading registered events:', error);
+        // If endpoint doesn't exist yet, show empty list
+        this.registeredEvents = [];
+        this.error = null; // Don't show error for now
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  switchTab(tab: EventTab): void {
+    this.activeTab = tab;
+    this.loadMyEvents();
+  }
+
+  get currentEvents(): ApiEvent[] {
+    return this.activeTab === 'created' ? this.createdEvents : this.registeredEvents;
   }
 
   getUserInitials(): string {
