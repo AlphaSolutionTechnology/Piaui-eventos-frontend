@@ -201,4 +201,13 @@
     </div>
   </div>
   }
+
+  <!-- Modal de Confirmação de Inscrição -->
+  <app-event-registration-modal
+    [isOpen]="showRegistrationModal"
+    [eventId]="event?.id || 0"
+    [eventName]="event?.name || ''"
+    (close)="closeRegistrationModal()"
+    (registerSuccess)="handleRegistrationSuccess()">
+  </app-event-registration-modal>
 </div>

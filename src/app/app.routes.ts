@@ -8,7 +8,6 @@ import { RegisterComponent } from './pages/register/register';
 // Páginas principais
 import { EventsPage } from './pages/events-page/events-page';
 import { EventDetailsPage } from './pages/event-details/event-details';
-import { EventRegistrationComponent } from './pages/event-registration/event-registration';
 import { CreateEventComponent } from './pages/create-event/create-event';
 import { MyEventsPage } from './pages/my-events/my-events';
 
@@ -51,12 +50,6 @@ export const routes: Routes = [
     path: 'event/:id',
     component: EventDetailsPage,
     title: 'Detalhes do Evento - Piauí Eventos',
-  },
-  {
-    path: 'event/:id/register',
-    component: EventRegistrationComponent,
-    canActivate: [authGuard],
-    title: 'Inscrição no Evento - Piauí Eventos',
   },
   {
     path: 'create-event',
