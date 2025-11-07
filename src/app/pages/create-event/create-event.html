@@ -202,18 +202,41 @@
                 />
                 <span class="input-icon" *ngIf="isLoadingAddress">
                   <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity="0.25"/>
-                    <path d="M12 2C6.47715 2 2 6.47715 2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      opacity="0.25"
+                    />
+                    <path
+                      d="M12 2C6.47715 2 2 6.47715 2 12"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
                   </svg>
                 </span>
-                <span class="input-icon success" *ngIf="!isLoadingAddress && createEventForm.address && !cepError">
+                <span
+                  class="input-icon success"
+                  *ngIf="!isLoadingAddress && createEventForm.address && !cepError"
+                >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M20 6L9 17L4 12" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path
+                      d="M20 6L9 17L4 12"
+                      stroke="#4ade80"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </span>
               </div>
               <small *ngIf="cepError" class="error-text">{{ cepError }}</small>
-              <small *ngIf="!cepError && !isLoadingAddress" class="help-text">O endereço será preenchido automaticamente ao digitar o CEP</small>
+              <small *ngIf="!cepError && !isLoadingAddress" class="help-text"
+                >O endereço será preenchido automaticamente ao digitar o CEP</small
+              >
               <small *ngIf="isLoadingAddress" class="help-text">Buscando endereço...</small>
             </div>
 
@@ -242,14 +265,27 @@
                   [class.valid]="createEventForm.address && !cepError"
                   [readonly]="isLoadingAddress"
                 />
-                <span class="input-icon success" *ngIf="createEventForm.address && !cepError && !isLoadingAddress">
+                <span
+                  class="input-icon success"
+                  *ngIf="createEventForm.address && !cepError && !isLoadingAddress"
+                >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M20 6L9 17L4 12" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path
+                      d="M20 6L9 17L4 12"
+                      stroke="#4ade80"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </span>
               </div>
-              <small class="help-text" *ngIf="!createEventForm.address">Será preenchido automaticamente ao digitar o CEP</small>
-              <small class="help-text success" *ngIf="createEventForm.address && !cepError">✓ Endereço preenchido automaticamente</small>
+              <small class="help-text" *ngIf="!createEventForm.address"
+                >Será preenchido automaticamente ao digitar o CEP</small
+              >
+              <small class="help-text success" *ngIf="createEventForm.address && !cepError"
+                >✓ Endereço preenchido automaticamente</small
+              >
             </div>
 
             <div class="form-row">
@@ -373,7 +409,13 @@
                   />
                   <span class="input-icon success" *ngIf="isEmailValid() && !emailError">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M20 6L9 17L4 12" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path
+                        d="M20 6L9 17L4 12"
+                        stroke="#4ade80"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </span>
                 </div>
@@ -550,8 +592,20 @@
         </svg>
       </div>
       <h3>{{ isEditMode ? 'Evento Atualizado!' : 'Evento Criado!' }}</h3>
-      <p>{{ isEditMode ? 'Seu evento foi atualizado com sucesso.' : 'Seu evento foi criado com sucesso e já está disponível na plataforma.' }}</p>
-      <p class="redirect-text">{{ isEditMode ? 'Redirecionando para meus eventos...' : 'Redirecionando para a lista de eventos...' }}</p>
+      <p>
+        {{
+          isEditMode
+            ? 'Seu evento foi atualizado com sucesso.'
+            : 'Seu evento foi criado com sucesso e já está disponível na plataforma.'
+        }}
+      </p>
+      <p class="redirect-text">
+        {{
+          isEditMode
+            ? 'Redirecionando para meus eventos...'
+            : 'Redirecionando para a lista de eventos...'
+        }}
+      </p>
     </div>
   </div>
 

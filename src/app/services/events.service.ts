@@ -8,7 +8,14 @@ import { environment } from '../../../enviroment';
 
 interface SpringPageResponse<T> {
   content: T[];
-  pageable: { pageNumber: number; pageSize: number; sort: any; offset: number; paged: boolean; unpaged: boolean };
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: any;
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
   totalPages: number;
   totalElements: number;
   last: boolean;
@@ -53,7 +60,7 @@ interface BackendLocationPayload {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EventsService {
   private readonly apiUrl = `${environment.API_URL}/events`;
@@ -102,12 +109,12 @@ export class EventsService {
     if (filter?.category?.trim()) params = params.set('eventType', filter.category.trim());
 
     return this.http.get<SpringPageResponse<BackendEvent>>(this.apiUrl, { params }).pipe(
-      map(response => this.transformBackendResponse(response)),
-      tap(response => {
+      map((response) => this.transformBackendResponse(response)),
+      tap((response) => {
         this.loadingSubject.next(false);
         if (!append) this.eventsSubject.next(response.events);
       }),
-      catchError(error => {
+      catchError((error) => {
         this.loadingSubject.next(false);
         this.errorSubject.next(this.getErrorMessage(error));
         return throwError(() => error);
@@ -120,9 +127,9 @@ export class EventsService {
     this.errorSubject.next(null);
 
     return this.http.get<BackendEvent>(`${this.apiUrl}/${id}`).pipe(
-      map(event => this.transformBackendEvent(event)),
+      map((event) => this.transformBackendEvent(event)),
       tap(() => this.loadingSubject.next(false)),
-      catchError(error => {
+      catchError((error) => {
         this.loadingSubject.next(false);
         this.errorSubject.next('Evento não encontrado.');
         return throwError(() => error);
@@ -136,12 +143,12 @@ export class EventsService {
     const payload = this.mapToEventRequestDTO(eventData, userId);
 
     return this.http.post<EventResponseDTO>(this.apiUrl, payload).pipe(
-      map(event => this.transformEventResponseToApiEvent(event)),
-      tap(newEvent => {
+      map((event) => this.transformEventResponseToApiEvent(event)),
+      tap((newEvent) => {
         this.loadingSubject.next(false);
         this.eventsSubject.next([newEvent, ...this.eventsSubject.value]);
       }),
-      catchError(error => {
+      catchError((error) => {
         this.loadingSubject.next(false);
         const errorMessage = this.getCreateEventErrorMessage(error);
         this.errorSubject.next(errorMessage);
@@ -156,9 +163,9 @@ export class EventsService {
     const payload = this.mapToBackendEvent(eventData);
 
     return this.http.put<BackendEvent>(`${this.apiUrl}/${id}`, payload).pipe(
-      map(event => this.transformBackendEvent(event)),
+      map((event) => this.transformBackendEvent(event)),
       tap(() => this.loadingSubject.next(false)),
-      catchError(error => {
+      catchError((error) => {
         this.loadingSubject.next(false);
         this.errorSubject.next('Erro ao atualizar evento.');
         return throwError(() => error);
@@ -173,9 +180,9 @@ export class EventsService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
         this.loadingSubject.next(false);
-        this.eventsSubject.next(this.eventsSubject.value.filter(e => e.id !== id));
+        this.eventsSubject.next(this.eventsSubject.value.filter((e) => e.id !== id));
       }),
-      catchError(error => {
+      catchError((error) => {
         this.loadingSubject.next(false);
         this.errorSubject.next('Erro ao deletar evento.');
         return throwError(() => error);
@@ -184,7 +191,7 @@ export class EventsService {
   }
 
   getCategories(): Observable<string[]> {
-    return new Observable(observer => {
+    return new Observable((observer) => {
       observer.next([
         'CULTURAL',
         'ESPORTIVO',
@@ -195,7 +202,7 @@ export class EventsService {
         'COMERCIAL',
         'RELIGIOSO',
         'ESPORTE',
-        'CONFERENCE'
+        'CONFERENCE',
       ]);
       observer.complete();
     });
@@ -212,9 +219,9 @@ export class EventsService {
   getAddressByCep(cep: string): Observable<ViaCepResponse> {
     // Remove any non-numeric characters from CEP
     const cleanCep = cep.replace(/\D/g, '');
-    
+
     return this.http.get<ViaCepResponse>(`${this.locationUrl}/${cleanCep}`).pipe(
-      catchError(error => {
+      catchError((error) => {
         console.error('Error fetching address by CEP:', error);
         return throwError(() => new Error('CEP não encontrado ou inválido.'));
       })
@@ -236,15 +243,17 @@ export class EventsService {
       .set('size', size.toString())
       .set('sort', 'eventDate,desc');
 
-    return this.http.get<SpringPageResponse<BackendEvent>>(`${this.apiUrl}/user/${userId}`, { params }).pipe(
-      map(response => this.transformBackendResponse(response)),
-      tap(() => this.loadingSubject.next(false)),
-      catchError(error => {
-        this.loadingSubject.next(false);
-        this.errorSubject.next('Erro ao carregar eventos criados.');
-        return throwError(() => error);
-      })
-    );
+    return this.http
+      .get<SpringPageResponse<BackendEvent>>(`${this.apiUrl}/user/${userId}`, { params })
+      .pipe(
+        map((response) => this.transformBackendResponse(response)),
+        tap(() => this.loadingSubject.next(false)),
+        catchError((error) => {
+          this.loadingSubject.next(false);
+          this.errorSubject.next('Erro ao carregar eventos criados.');
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
@@ -253,7 +262,11 @@ export class EventsService {
    * @param page Page number (0-indexed)
    * @param size Page size
    */
-  getRegisteredEvents(userId: number, page: number = 0, size: number = 10): Observable<EventsResponse> {
+  getRegisteredEvents(
+    userId: number,
+    page: number = 0,
+    size: number = 10
+  ): Observable<EventsResponse> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
@@ -262,15 +275,17 @@ export class EventsService {
       .set('size', size.toString())
       .set('sort', 'eventDate');
 
-    return this.http.get<SpringPageResponse<BackendEvent>>(`${this.apiUrl}/subscribed/user/${userId}`, { params }).pipe(
-      map(response => this.transformBackendResponse(response)),
-      tap(() => this.loadingSubject.next(false)),
-      catchError(error => {
-        this.loadingSubject.next(false);
-        this.errorSubject.next('Erro ao carregar eventos inscritos.');
-        return throwError(() => error);
-      })
-    );
+    return this.http
+      .get<SpringPageResponse<BackendEvent>>(`${this.apiUrl}/subscribed/user/${userId}`, { params })
+      .pipe(
+        map((response) => this.transformBackendResponse(response)),
+        tap(() => this.loadingSubject.next(false)),
+        catchError((error) => {
+          this.loadingSubject.next(false);
+          this.errorSubject.next('Erro ao carregar eventos inscritos.');
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
@@ -281,13 +296,17 @@ export class EventsService {
    */
   isUserSubscribedToEvent(eventId: number, userId: number): Observable<boolean> {
     return this.getRegisteredEvents(userId, 0, 1000).pipe(
-      map(response => {
+      map((response) => {
         // Procura pelo evento na lista de inscrições
-        const isSubscribed = response.events.some(event => event.id === eventId);
-        console.log(`✅ [EventsService] User ${userId} is${isSubscribed ? '' : ' not'} subscribed to event ${eventId}`);
+        const isSubscribed = response.events.some((event) => event.id === eventId);
+        console.log(
+          `✅ [EventsService] User ${userId} is${
+            isSubscribed ? '' : ' not'
+          } subscribed to event ${eventId}`
+        );
         return isSubscribed;
       }),
-      catchError(error => {
+      catchError((error) => {
         console.error('❌ [EventsService] Error checking subscription:', error);
         return of(false); // Se houver erro, assume que não está inscrito
       })
@@ -299,16 +318,16 @@ export class EventsService {
   }
 
   private transformBackendResponse(response: SpringPageResponse<BackendEvent>): EventsResponse {
-    const events = response.content.map(event => this.transformBackendEvent(event));
+    const events = response.content.map((event) => this.transformBackendEvent(event));
     return {
       events,
       pagination: {
         page: response.number,
         size: response.size,
         total: response.totalElements,
-        totalPages: response.totalPages
+        totalPages: response.totalPages,
       },
-      total: response.totalElements
+      total: response.totalElements,
     };
   }
 
@@ -344,7 +363,7 @@ export class EventsService {
       allowWaitlist: false,
       status: 'published',
       createdAt: event.eventDate,
-      updatedAt: event.eventDate
+      updatedAt: event.eventDate,
     };
   }
 
@@ -364,7 +383,7 @@ export class EventsService {
     const exampleDomains = ['example.com', 'placeholder.com', 'picsum.photos', 'loremflickr.com'];
     try {
       const { hostname } = new URL(url);
-      return exampleDomains.some(d => hostname.includes(d))
+      return exampleDomains.some((d) => hostname.includes(d))
         ? 'assets/events/evento-exemplo.svg'
         : url;
     } catch {
@@ -382,7 +401,7 @@ export class EventsService {
       zipCode: '',
       latitude: '0',
       longitude: '0',
-      category: 'OTHER'
+      category: 'OTHER',
     };
 
     return {
@@ -393,7 +412,7 @@ export class EventsService {
       eventType: data.eventType || data.category || '',
       maxSubs: data.maxParticipants ?? 0,
       subscribedCount: data.currentParticipants ?? 0,
-      location: locationPayload as any
+      location: locationPayload as any,
     };
   }
 
@@ -411,7 +430,7 @@ export class EventsService {
   private mapToEventRequestDTO(data: Partial<ApiEvent>, createdBy: number): EventRequestDTO {
     const date = data.date || '';
     const time = data.time || '00:00';
-    
+
     // Convert to LocalDateTime format: "yyyy-MM-ddTHH:mm:ss"
     const eventDateTime = `${date}T${time}:00`;
 
@@ -421,7 +440,7 @@ export class EventsService {
       zipCode: data.zipCode || '',
       latitude: '0',
       longitude: '0',
-      category: data.category || 'OTHER'
+      category: data.category || 'OTHER',
     };
 
     return {
@@ -432,7 +451,7 @@ export class EventsService {
       eventType: data.eventType || data.category || '',
       maxSubs: data.maxParticipants ?? 0,
       createdBy: createdBy,
-      location: locationDTO
+      location: locationDTO,
     };
   }
 
@@ -469,7 +488,7 @@ export class EventsService {
       allowWaitlist: false,
       status: 'published',
       createdAt: response.eventDate,
-      updatedAt: response.eventDate
+      updatedAt: response.eventDate,
     };
   }
 

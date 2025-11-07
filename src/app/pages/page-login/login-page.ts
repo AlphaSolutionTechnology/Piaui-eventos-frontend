@@ -189,6 +189,9 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   forgotPassword() {
-    this.toastService.info('Funcionalidade de recuperação de senha será implementada em breve!', 5000);
+    this.toastService.info(
+      'Funcionalidade de recuperação de senha será implementada em breve!',
+      5000
+    );
   }
 }

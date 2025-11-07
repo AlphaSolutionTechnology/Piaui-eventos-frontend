@@ -54,7 +54,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
   errorMessage = '';
   currentStep = 1;
   totalSteps = 3;
-  
+
   isLoadingAddress = false;
   cepError = '';
   emailError = '';
@@ -86,7 +86,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     tags: [],
     requiresApproval: false,
     isPublic: true,
-    allowWaitlist: true
+    allowWaitlist: true,
   };
 
   categories: Category[] = [
@@ -99,7 +99,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     { id: 'gastronomia', name: 'Gastronomia', icon: '🍽️' },
     { id: 'arte', name: 'Arte', icon: '🎨' },
     { id: 'musica', name: 'Música', icon: '🎵' },
-    { id: 'outros', name: 'Outros', icon: '📋' }
+    { id: 'outros', name: 'Outros', icon: '📋' },
   ];
 
   constructor(
@@ -303,7 +303,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
   }
 
   removeTag(tag: string) {
-    this.createEventForm.tags = this.createEventForm.tags.filter(t => t !== tag);
+    this.createEventForm.tags = this.createEventForm.tags.filter((t) => t !== tag);
   }
 
   onTagInputKeyPress(event: KeyboardEvent) {
@@ -326,7 +326,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
    */
   searchAddressByCep() {
     const cep = this.createEventForm.zipCode.replace(/\D/g, '');
-    
+
     // Silently return if CEP is not complete
     if (cep.length !== 8) {
       return;
@@ -338,11 +338,13 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     this.eventsService.getAddressByCep(cep).subscribe({
       next: (response) => {
         this.isLoadingAddress = false;
-        
+
         // Auto-fill address fields
-        const fullAddress = `${response.logradouro}${response.complemento ? ', ' + response.complemento : ''}, ${response.bairro} - ${response.localidade}/${response.uf}`;
+        const fullAddress = `${response.logradouro}${
+          response.complemento ? ', ' + response.complemento : ''
+        }, ${response.bairro} - ${response.localidade}/${response.uf}`;
         this.createEventForm.address = fullAddress;
-        
+
         // Auto-focus on location field after successful CEP lookup
         if (isPlatformBrowser(this.platformId)) {
           setTimeout(() => {
@@ -352,7 +354,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
             }
           }, 100);
         }
-        
+
         console.log('Address found:', response);
       },
       error: (error) => {
@@ -360,7 +362,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         this.cepError = 'CEP não encontrado. Verifique o número digitado.';
         this.createEventForm.address = ''; // Clear on error
         console.error('Error fetching address:', error);
-      }
+      },
     });
   }
 
@@ -369,15 +371,15 @@ export class CreateEventComponent implements OnInit, OnDestroy {
    */
   onCepInput(event: any) {
     let value = event.target.value.replace(/\D/g, '');
-    
+
     if (value.length > 8) {
       value = value.substring(0, 8);
     }
-    
+
     if (value.length > 5) {
       value = value.replace(/(\d{5})(\d)/, '$1-$2');
     }
-    
+
     this.createEventForm.zipCode = value;
     this.cepError = '';
 
@@ -398,11 +400,11 @@ export class CreateEventComponent implements OnInit, OnDestroy {
    */
   formatPhone(event: any) {
     let value = event.target.value.replace(/\D/g, '');
-    
+
     if (value.length > 11) {
       value = value.substring(0, 11);
     }
-    
+
     if (value.length > 10) {
       // Mobile: (XX) XXXXX-XXXX
       value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
@@ -412,7 +414,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     } else if (value.length > 2) {
       value = value.replace(/(\d{2})(\d{0,5})/, '($1) $2');
     }
-    
+
     this.createEventForm.organizerPhone = value;
   }
 
@@ -421,12 +423,12 @@ export class CreateEventComponent implements OnInit, OnDestroy {
    */
   validateEmail() {
     const email = this.createEventForm.organizerEmail.trim();
-    
+
     if (!email) {
       this.emailError = '';
       return;
     }
-    
+
     if (!this.isValidEmail(email)) {
       this.emailError = 'E-mail inválido';
     } else {
@@ -461,7 +463,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         setTimeout(() => {
           this.router.navigate(['/my-events']);
         }, 2000);
-      }
+      },
     });
   }
 
@@ -473,7 +475,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
       // Parse date and time from eventDate field (format: "30/11/2025 14:30:00")
       let date = '';
       let time = '';
-      
+
       if (event.eventDate) {
         const parts = event.eventDate.split(' ');
         if (parts.length === 2) {
@@ -505,7 +507,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         tags: event.tags || [],
         requiresApproval: event.requiresApproval || false,
         isPublic: event.isPublic !== false,
-        allowWaitlist: event.allowWaitlist !== false
+        allowWaitlist: event.allowWaitlist !== false,
       };
 
       // Set image preview if available
@@ -550,7 +552,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
       isPublic: this.createEventForm.isPublic,
       allowWaitlist: this.createEventForm.allowWaitlist,
       status: 'published',
-      currentParticipants: 0
+      currentParticipants: 0,
     };
 
     if (this.isEditMode && this.eventIdToEdit) {
@@ -571,7 +573,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           console.error('Error updating event:', error);
           this.handleSubmitError(error, 'atualizar');
-        }
+        },
       });
     } else {
       // Create new event - need user ID
@@ -593,7 +595,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
               this.isLoading = false;
               console.error('Error creating event:', error);
               this.handleSubmitError(error, 'criar');
-            }
+            },
           });
         },
         error: (error) => {
@@ -607,7 +609,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
           setTimeout(() => {
             this.router.navigate(['/login']);
           }, 2000);
-        }
+        },
       });
     }
   }
@@ -626,28 +628,30 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     } else if (error.status === 400) {
       this.errorMessage = 'Dados inválidos. Verifique os campos e tente novamente.';
     } else if (error.status === 401 || error.status === 403) {
-      this.errorMessage = 'Você não tem permissão para ' + action + ' eventos. Faça login novamente.';
+      this.errorMessage =
+        'Você não tem permissão para ' + action + ' eventos. Faça login novamente.';
     } else if (error.status === 404) {
       this.errorMessage = 'Evento não encontrado.';
     } else if (error.status === 409) {
-      this.errorMessage = 'Conflito ao ' + action + ' evento. O evento pode ter sido modificado por outro usuário.';
+      this.errorMessage =
+        'Conflito ao ' + action + ' evento. O evento pode ter sido modificado por outro usuário.';
     } else if (error.status === 500) {
       this.errorMessage = 'Erro no servidor ao ' + action + ' evento. Tente novamente mais tarde.';
     } else {
       this.errorMessage = 'Erro ao ' + action + ' evento. Verifique os dados e tente novamente.';
     }
-    
+
     this.showError = true;
     this.toastService.error(this.errorMessage);
   }
 
   getCategoryIcon(categoryId: string): string {
-    const category = this.categories.find(c => c.id === categoryId);
+    const category = this.categories.find((c) => c.id === categoryId);
     return category ? category.icon : '📋';
   }
 
   getCategoryName(categoryId: string): string {
-    const category = this.categories.find(c => c.id === categoryId);
+    const category = this.categories.find((c) => c.id === categoryId);
     return category ? category.name : categoryId;
   }
 
@@ -675,7 +679,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
     }).format(value);
   }
 }
