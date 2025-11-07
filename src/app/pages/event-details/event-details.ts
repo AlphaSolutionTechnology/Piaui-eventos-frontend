@@ -40,6 +40,7 @@ export class EventDetailsPage implements OnInit, OnDestroy {
   renderKey = 0;
   showLoginModal = false;
   showRegistrationModal = false;
+  isUserSubscribed = false;
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -141,6 +142,7 @@ export class EventDetailsPage implements OnInit, OnDestroy {
   handleRegistrationSuccess() {
     // Inscrição realizada com sucesso
     this.showRegistrationModal = false;
+    this.isUserSubscribed = true;
     // Você pode atualizar dados do evento aqui se desejar
     this.loadEventData();
   }
@@ -157,6 +159,17 @@ export class EventDetailsPage implements OnInit, OnDestroy {
 
   goBack() {
     this.location.back();
+  }
+
+  /**
+   * Manipula evento de desinscrição bem-sucedida
+   */
+  handleUnregistrationSuccess() {
+    console.log('✅ [EVENT-DETAILS] User successfully unregistered from event');
+    this.showRegistrationModal = false;
+    this.isUserSubscribed = false;
+    // Você pode atualizar dados do evento aqui se desejar
+    this.loadEventData();
   }
 
   /**

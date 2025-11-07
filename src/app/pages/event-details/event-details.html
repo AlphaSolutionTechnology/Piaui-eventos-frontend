@@ -211,8 +211,10 @@
     [isOpen]="showRegistrationModal"
     [eventId]="event?.id || 0"
     [eventName]="event?.name || ''"
+    [isUserSubscribed]="isUserSubscribed"
     (close)="closeRegistrationModal()"
     (registerSuccess)="handleRegistrationSuccess()"
+    (unregisterSuccess)="handleUnregistrationSuccess()"
   >
   </app-event-registration-modal>
 </div>
