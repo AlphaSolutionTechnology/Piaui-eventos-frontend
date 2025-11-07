@@ -16,13 +16,16 @@ A página `event-registration` foi removida e substituída por um **modal de con
 ### Novos Arquivos:
 
 1. **`src/app/services/event-registration.service.ts`**
+
    - Serviço completo para gerenciar inscrições em eventos
    - Funções pré-prontas com comentários de integração
 
 2. **`src/app/components/event-registration-modal/event-registration-modal.ts`**
+
    - Component do modal de confirmação
 
 3. **`src/app/components/event-registration-modal/event-registration-modal.html`**
+
    - Template do modal
 
 4. **`src/app/components/event-registration-modal/event-registration-modal.css`**
@@ -31,11 +34,13 @@ A página `event-registration` foi removida e substituída por um **modal de con
 ### Arquivos Modificados:
 
 1. **`src/app/pages/event-details/event-details.ts`**
+
    - Adicionado import do modal
    - Novo método `handleRegistrationModal()`
    - Novo método `handleRegistrationSuccess()`
 
 2. **`src/app/pages/event-details/event-details.html`**
+
    - Adicionado component do modal no template
 
 3. **`src/app/app.routes.ts`**
@@ -56,10 +61,10 @@ Primeiro, confirme com seu backend qual é o endpoint e a estrutura esperada:
 
 ```typescript
 // Exemplos possíveis:
-POST /api/registrations
-POST /api/events/{eventId}/subscribe
-POST /api/participants/{userId}/events/{eventId}
-PUT  /api/events/{eventId}/participants
+POST / api / registrations;
+POST / api / events / { eventId } / subscribe;
+POST / api / participants / { userId } / events / { eventId };
+PUT / api / events / { eventId } / participants;
 ```
 
 ### Passo 2: Ajustar a URL do Endpoint
@@ -85,6 +90,7 @@ private registrationUrl = `${environment.API_URL}/events/subscribe`;
 Localize o método `mapToBackendPayload()` no arquivo `event-registration.service.ts`.
 
 **Opção A - Payload Flat (estrutura atual):**
+
 ```typescript
 private mapToBackendPayload(data: EventRegistrationData): any {
   return {
@@ -99,6 +105,7 @@ private mapToBackendPayload(data: EventRegistrationData): any {
 ```
 
 **Opção B - Payload com Agrupamento:**
+
 ```typescript
 private mapToBackendPayload(data: EventRegistrationData): any {
   return {
@@ -117,6 +124,7 @@ private mapToBackendPayload(data: EventRegistrationData): any {
 ```
 
 **Opção C - Payload com Nomes Customizados:**
+
 ```typescript
 private mapToBackendPayload(data: EventRegistrationData): any {
   return {
@@ -135,6 +143,7 @@ private mapToBackendPayload(data: EventRegistrationData): any {
 Localize o método `registerUserToEvent()` e configure:
 
 **Opção A - POST Simples (atual):**
+
 ```typescript
 return this.http.post<EventRegistrationResponse>(
   this.registrationUrl,
@@ -143,6 +152,7 @@ return this.http.post<EventRegistrationResponse>(
 ```
 
 **Opção B - POST com URL Dinâmica:**
+
 ```typescript
 return this.http.post<EventRegistrationResponse>(
   `${environment.API_URL}/events/${registrationData.eventId}/subscribe`,
@@ -151,6 +161,7 @@ return this.http.post<EventRegistrationResponse>(
 ```
 
 **Opção C - PUT com ID de Inscrição:**
+
 ```typescript
 return this.http.put<EventRegistrationResponse>(
   `${this.registrationUrl}/${registrationData.eventId}`,
@@ -216,11 +227,13 @@ Content-Type: application/json
 ### Implementação:
 
 1. **Atualizar URL:**
+
 ```typescript
 private registrationUrl = `${environment.API_URL}/inscricoes`;
 ```
 
 2. **Atualizar o payload:**
+
 ```typescript
 private mapToBackendPayload(data: EventRegistrationData): any {
   return {
@@ -243,6 +256,7 @@ private mapToBackendPayload(data: EventRegistrationData): any {
 ```
 
 3. **Resposta esperada:**
+
 ```typescript
 export interface EventRegistrationResponse {
   id: number;
@@ -265,6 +279,7 @@ checkUserEventRegistration(userId: number, eventId: number): Observable<boolean>
 ```
 
 Descomente e implemente:
+
 ```typescript
 checkUserEventRegistration(userId: number, eventId: number): Observable<boolean> {
   return this.http.get<{exists: boolean}>(
@@ -284,6 +299,7 @@ cancelEventRegistration(registrationId: number): Observable<any>
 ```
 
 Descomente e implemente:
+
 ```typescript
 cancelEventRegistration(registrationId: number): Observable<any> {
   return this.http.delete(
@@ -307,6 +323,7 @@ cancelEventRegistration(registrationId: number): Observable<any> {
 Se quiser adicionar mais campos ao formulário de inscrição:
 
 1. **Atualize `EventRegistrationData` em `event-registration.service.ts`:**
+
 ```typescript
 export interface EventRegistrationData {
   // ... campos existentes
@@ -317,6 +334,7 @@ export interface EventRegistrationData {
 ```
 
 2. **Adicione o campo no template do modal:**
+
 ```html
 <div class="form-group">
   <label for="specialNeeds">Necessidades Especiais</label>
@@ -325,11 +343,13 @@ export interface EventRegistrationData {
     id="specialNeeds"
     [(ngModel)]="specialNeeds"
     name="specialNeeds"
-    placeholder="Descreva suas necessidades...">
+    placeholder="Descreva suas necessidades..."
+  />
 </div>
 ```
 
 3. **Atualize o component TypeScript:**
+
 ```typescript
 specialNeeds = '';
 
@@ -400,20 +420,24 @@ Para customizar, edite `getErrorMessage()` em `event-registration.service.ts`.
 ## 🆘 Troubleshooting
 
 ### Modal não abre
+
 - Verifique se `showRegistrationModal` está sendo setado para `true`
 - Confirme que o user está autenticado
 
 ### Dados não são enviados
+
 - Verifique console (F12) para erros de JavaScript
 - Confira o payload no Network tab
 - Valide se a URL do endpoint está correta
 
 ### Erros 400 (Bad Request)
+
 - Verifique a estrutura do payload vs esperado
 - Use `JSON.stringify()` no console para debug
 - Confirme tipos de dados (string, number, boolean)
 
 ### Erros 401/403
+
 - Verifique se o token está sendo enviado
 - Confirme se os cookies estão sendo salvos
 - Verificar auth interceptor

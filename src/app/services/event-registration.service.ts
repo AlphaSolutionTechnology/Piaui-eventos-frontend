@@ -16,11 +16,11 @@ export interface EventRegistrationData {
   userName: string;
   userEmail: string;
   userPhoneNumber: string;
-  
+
   // Informações do evento
   eventId: number;
   eventName: string;
-  
+
   // Informações adicionais de participação
   dietaryRestrictions?: string;
   comments?: string;
@@ -40,7 +40,7 @@ export interface EventRegistrationResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EventRegistrationService {
   // TODO: CONECTAR ENDPOINT REAL - Atualize a URL do endpoint para inscrição
@@ -62,7 +62,7 @@ export class EventRegistrationService {
   /**
    * Prepara os dados de inscrição do usuário autenticado
    * Esta função extrai as informações do usuário do contexto de autenticação
-   * 
+   *
    * @param eventId - ID do evento para inscrição
    * @param eventName - Nome do evento (para referência)
    * @param dietaryRestrictions - Restrições alimentares (opcional)
@@ -93,22 +93,22 @@ export class EventRegistrationService {
       eventName,
       dietaryRestrictions: dietaryRestrictions || '',
       comments: comments || '',
-      receiveUpdates
+      receiveUpdates,
     };
   }
 
   /**
    * Registra um usuário em um evento
-   * 
+   *
    * TODO: AJUSTAR ESTRUTURA DE PAYLOAD - Modifique a estrutura do payload enviado
    * conforme esperado pelo seu backend. Exemplo:
-   * 
+   *
    * // Opção 1 - Sem transformação:
    * return this.http.post<EventRegistrationResponse>(
    *   `${this.registrationUrl}`,
    *   registrationData
    * )
-   * 
+   *
    * // Opção 2 - Com transformação de payload:
    * const payload = {
    *   participant: {
@@ -126,57 +126,61 @@ export class EventRegistrationService {
    *   `${this.registrationUrl}/events/${registrationData.eventId}`,
    *   payload
    * )
-   * 
+   *
    * // Opção 3 - Via endpoint específico:
    * return this.http.post<EventRegistrationResponse>(
    *   `${environment.API_URL}/events/${registrationData.eventId}/subscribe`,
    *   { userId: registrationData.userId }
    * )
-   * 
+   *
    * @param registrationData - Dados preparados da inscrição
    * @returns Observable com resposta da inscrição
    */
-  registerUserToEvent(registrationData: EventRegistrationData): Observable<EventRegistrationResponse> {
+  registerUserToEvent(
+    registrationData: EventRegistrationData
+  ): Observable<EventRegistrationResponse> {
     this.registrationLoadingSubject.next(true);
     this.registrationErrorSubject.next(null);
 
-    // TODO: CONEXÃO COM BACKEND - Esta é a estrutura padrão. 
+    // TODO: CONEXÃO COM BACKEND - Esta é a estrutura padrão.
     // Ajuste conforme sua API:
     // 1. Mude `this.registrationUrl` para o endpoint correto
     // 2. Mude `registrationData` para a estrutura esperada pelo backend
     // 3. Mude `EventRegistrationResponse` para o tipo de resposta real
 
-    return this.http.post<EventRegistrationResponse>(
-      this.registrationUrl,
-      this.mapToBackendPayload(registrationData)
-    ).pipe(
-      tap((response) => {
-        this.registrationLoadingSubject.next(false);
-        console.log('✅ Inscrição realizada com sucesso:', response);
-      }),
-      catchError((error) => {
-        this.registrationLoadingSubject.next(false);
-        const errorMessage = this.getErrorMessage(error);
-        this.registrationErrorSubject.next(errorMessage);
-        console.error('❌ Erro ao inscrever no evento:', error);
-        return throwError(() => error);
-      })
-    );
+    return this.http
+      .post<EventRegistrationResponse>(
+        this.registrationUrl,
+        this.mapToBackendPayload(registrationData)
+      )
+      .pipe(
+        tap((response) => {
+          this.registrationLoadingSubject.next(false);
+          console.log('✅ Inscrição realizada com sucesso:', response);
+        }),
+        catchError((error) => {
+          this.registrationLoadingSubject.next(false);
+          const errorMessage = this.getErrorMessage(error);
+          this.registrationErrorSubject.next(errorMessage);
+          console.error('❌ Erro ao inscrever no evento:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
    * Mapeia os dados da aplicação para a estrutura esperada pelo backend
-   * 
+   *
    * TODO: CUSTOMIZAR TRANSFORMAÇÃO - Modifique esta função para transformar
    * os dados conforme a estrutura esperada do seu backend
-   * 
+   *
    * Exemplo de possíveis estruturas:
-   * 
+   *
    * // Estrutura 1 - Direta (sem transformação):
    * mapToBackendPayload(data: EventRegistrationData) {
    *   return data;
    * }
-   * 
+   *
    * // Estrutura 2 - Com agrupamento:
    * mapToBackendPayload(data: EventRegistrationData) {
    *   return {
@@ -194,7 +198,7 @@ export class EventRegistrationService {
    *     }
    *   };
    * }
-   * 
+   *
    * // Estrutura 3 - Flat com prefixos:
    * mapToBackendPayload(data: EventRegistrationData) {
    *   return {
@@ -205,7 +209,7 @@ export class EventRegistrationService {
    *     newsletter: data.receiveUpdates
    *   };
    * }
-   * 
+   *
    * @param data - Dados da inscrição em formato padrão
    * @returns Dados transformados para a estrutura do backend
    */
@@ -221,13 +225,13 @@ export class EventRegistrationService {
       eventName: data.eventName,
       dietaryRestrictions: data.dietaryRestrictions,
       comments: data.comments,
-      receiveUpdates: data.receiveUpdates
+      receiveUpdates: data.receiveUpdates,
     };
   }
 
   /**
    * Extrai mensagem de erro da resposta HTTP
-   * 
+   *
    * @param error - Objeto de erro do HTTP
    * @returns Mensagem de erro formatada
    */
@@ -258,10 +262,10 @@ export class EventRegistrationService {
 
   /**
    * Verifica se já existe uma inscrição do usuário em um evento
-   * 
+   *
    * TODO: IMPLEMENTAR VERIFICAÇÃO - Se o backend suporta, implemente a verificação
    * de inscrição existente. Exemplo:
-   * 
+   *
    * checkUserEventRegistration(userId: number, eventId: number): Observable<boolean> {
    *   return this.http.get<{exists: boolean}>(
    *     `${this.registrationUrl}/user/${userId}/event/${eventId}`
@@ -270,7 +274,7 @@ export class EventRegistrationService {
    *     catchError(() => of(false))
    *   );
    * }
-   * 
+   *
    * @param userId - ID do usuário
    * @param eventId - ID do evento
    * @returns Observable indicando se já existe inscrição
@@ -278,7 +282,7 @@ export class EventRegistrationService {
   checkUserEventRegistration(userId: number, eventId: number): Observable<boolean> {
     // TODO: Implementar endpoint de verificação
     console.warn('⚠️ checkUserEventRegistration não está implementado ainda');
-    return new Observable(observer => {
+    return new Observable((observer) => {
       observer.next(false);
       observer.complete();
     });
@@ -286,10 +290,10 @@ export class EventRegistrationService {
 
   /**
    * Cancela a inscrição de um usuário em um evento
-   * 
+   *
    * TODO: IMPLEMENTAR CANCELAMENTO - Se o backend suporta, implemente o cancelamento
    * de inscrição. Exemplo:
-   * 
+   *
    * cancelEventRegistration(registrationId: number): Observable<any> {
    *   return this.http.delete(
    *     `${this.registrationUrl}/${registrationId}`
@@ -301,21 +305,21 @@ export class EventRegistrationService {
    *     })
    *   );
    * }
-   * 
+   *
    * @param registrationId - ID da inscrição a cancelar
    * @returns Observable com resultado do cancelamento
    */
   cancelEventRegistration(registrationId: number): Observable<any> {
     // TODO: Implementar endpoint de cancelamento
     console.warn('⚠️ cancelEventRegistration não está implementado ainda');
-    return new Observable(observer => {
+    return new Observable((observer) => {
       observer.error('Método não implementado');
     });
   }
 
   /**
    * Obtém o estado de carregamento atual
-   * 
+   *
    * @returns boolean indicando se há uma requisição em progresso
    */
   isRegistrationLoading(): boolean {

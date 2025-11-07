@@ -16,17 +16,21 @@ A página de inscrição (`event-registration`) foi **removida**. No lugar dela,
 ## 🚀 3 Passos para Integrar com Backend
 
 ### 1️⃣ Encontrar o Arquivo
+
 ```
 src/app/services/event-registration.service.ts
 ```
 
 ### 2️⃣ Procurar por "TODO"
+
 Há apenas 3 lugares a modificar (todos marcados com `TODO`):
+
 - **Linha 50**: URL do endpoint
 - **Linha 147**: Estrutura do payload
 - **Linha 22**: Interface de resposta
 
 ### 3️⃣ Testar
+
 ```bash
 npm start
 # Fazer login → Clique em evento → "Inscrever-se" → Verif. Network Tab
@@ -36,12 +40,12 @@ npm start
 
 ## 📍 Documentação Rápida
 
-| Arquivo | O Quê |
-|---------|-------|
-| `CHANGELOG_INSCRICOES.md` | 📋 Mudanças implementadas |
-| `RESUMO_TECNICO_INSCRICOES.md` | 🔧 Arquitetura técnica |
-| `INTEGRACAO_BACKEND_INSCRICOES.md` | 📚 Guia completo |
-| `ANTES_E_DEPOIS_INSCRICOES.md` | 🔄 Comparação antes/depois |
+| Arquivo                            | O Quê                      |
+| ---------------------------------- | -------------------------- |
+| `CHANGELOG_INSCRICOES.md`          | 📋 Mudanças implementadas  |
+| `RESUMO_TECNICO_INSCRICOES.md`     | 🔧 Arquitetura técnica     |
+| `INTEGRACAO_BACKEND_INSCRICOES.md` | 📚 Guia completo           |
+| `ANTES_E_DEPOIS_INSCRICOES.md`     | 🔄 Comparação antes/depois |
 
 ---
 
@@ -130,19 +134,20 @@ R: `event-registration.service.ts` → método `registerUserToEvent()`
 
 ## 🆘 Troubleshooting
 
-| Problema | Solução |
-|----------|---------|
-| Modal não abre | Verificar autenticação |
+| Problema                | Solução                                  |
+| ----------------------- | ---------------------------------------- |
+| Modal não abre          | Verificar autenticação                   |
 | Dados não pré-preenchem | Verificar `authService.getCurrentUser()` |
-| Erro 404 | Endpoint URL incorreta (linha 50) |
-| Erro 400 | Payload com estrutura errada (linha 147) |
-| CORS error | Configurar CORS no backend |
+| Erro 404                | Endpoint URL incorreta (linha 50)        |
+| Erro 400                | Payload com estrutura errada (linha 147) |
+| CORS error              | Configurar CORS no backend               |
 
 ---
 
 ## 📞 Próximo Passo?
 
 👉 **Fale com o Backend Team:**
+
 - Qual é o endpoint de inscrição?
 - Qual estrutura de payload esperada?
 - Quais códigos de erro?

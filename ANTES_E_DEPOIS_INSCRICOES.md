@@ -3,6 +3,7 @@
 ## ❌ ANTES: Página Separada de Inscrição
 
 ### Estrutura
+
 ```
 /events              → Lista de eventos
   └─ /event/:id      → Detalhes do evento
@@ -10,6 +11,7 @@
 ```
 
 ### User Journey (5 passos)
+
 ```
 1️⃣  Clica "Inscrever-se"
       ↓
@@ -23,6 +25,7 @@
 ```
 
 ### Problemas ❌
+
 - **Duplicação de dados**: Usuário já forneceu nome, email e telefone no cadastro
 - **Navegação desnecessária**: Saía da página do evento para nova página
 - **Tempo de carregamento**: Página completa nova a carregar
@@ -30,6 +33,7 @@
 - **Mobile ruim**: Navegação adicional em telas pequenas
 
 ### Código Antigo
+
 ```typescript
 // event-details.ts - OLD
 handleRegisterClick() {
@@ -62,6 +66,7 @@ export class EventRegistrationComponent {
 ## ✅ DEPOIS: Modal de Confirmação Inteligente
 
 ### Estrutura
+
 ```
 /events              → Lista de eventos
   └─ /event/:id      → Detalhes do evento
@@ -69,6 +74,7 @@ export class EventRegistrationComponent {
 ```
 
 ### User Journey (3 passos)
+
 ```
 1️⃣  Clica "Inscrever-se"
       ↓
@@ -78,6 +84,7 @@ export class EventRegistrationComponent {
 ```
 
 ### Benefícios ✅
+
 - **Sem duplicação**: Reutiliza dados do usuário autenticado
 - **UX fluida**: Tudo na mesma página
 - **Rápido**: Modal carrega em ms
@@ -86,6 +93,7 @@ export class EventRegistrationComponent {
 - **Moderno**: Padrão de aplicações modernas
 
 ### Código Novo
+
 ```typescript
 // event-details.ts - NEW
 handleRegisterClick() {
@@ -109,7 +117,7 @@ handleRegisterClick() {
 export class EventRegistrationModalComponent {
   // ✅ Dados pré-preenchidos automaticamente
   currentUser: User | null = this.authService.getCurrentUser();
-  
+
   // ✅ Apenas campos complementares
   dietaryRestrictions = '';
   comments = '';
@@ -121,23 +129,24 @@ export class EventRegistrationModalComponent {
 
 ## 📊 Comparação Lado a Lado
 
-| Aspecto | ❌ ANTES | ✅ DEPOIS |
-|---------|---------|----------|
-| **Componentes** | 1 página completa | 1 modal + serviço |
-| **Navegação** | /event/:id → /register → /events | /event/:id (sem sair) |
-| **Campos obrigatórios** | 3 (nome, email, phone) | 0 (pré-preenchidos!) |
-| **Tempo de carregamento** | ~500ms (página nova) | ~50ms (modal) |
-| **Mobile experience** | Ruim (troca de página) | Ótimo (modal fluido) |
-| **Reutilização de dados** | Não ❌ | Sim ✅ |
-| **Duplicação de código** | Alta ❌ | Baixa ✅ |
-| **Manutenibilidade** | Difícil (página separada) | Fácil (um serviço) |
-| **Integração backend** | Pronta | Pronta com TODO markers |
+| Aspecto                   | ❌ ANTES                         | ✅ DEPOIS               |
+| ------------------------- | -------------------------------- | ----------------------- |
+| **Componentes**           | 1 página completa                | 1 modal + serviço       |
+| **Navegação**             | /event/:id → /register → /events | /event/:id (sem sair)   |
+| **Campos obrigatórios**   | 3 (nome, email, phone)           | 0 (pré-preenchidos!)    |
+| **Tempo de carregamento** | ~500ms (página nova)             | ~50ms (modal)           |
+| **Mobile experience**     | Ruim (troca de página)           | Ótimo (modal fluido)    |
+| **Reutilização de dados** | Não ❌                           | Sim ✅                  |
+| **Duplicação de código**  | Alta ❌                          | Baixa ✅                |
+| **Manutenibilidade**      | Difícil (página separada)        | Fácil (um serviço)      |
+| **Integração backend**    | Pronta                           | Pronta com TODO markers |
 
 ---
 
 ## 🎯 Visual: Modal de Inscrição
 
 ### Desktop
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ ╳                                                         │
@@ -180,6 +189,7 @@ export class EventRegistrationModalComponent {
 ```
 
 ### Mobile
+
 ```
 ┌──────────────────────────┐
 │ ╳                        │
@@ -225,6 +235,7 @@ export class EventRegistrationModalComponent {
 ## 📈 Impacto de Performance
 
 ### Carregamento
+
 ```
 ❌ ANTES:
   Clica "Inscrever" → Navega para /register → Carrega nova página
@@ -236,6 +247,7 @@ export class EventRegistrationModalComponent {
 ```
 
 ### Tamanho Bundle
+
 ```
 ❌ ANTES:
   Página event-registration: ~15KB
@@ -248,6 +260,7 @@ export class EventRegistrationModalComponent {
 ```
 
 ### Requisições HTTP
+
 ```
 ❌ ANTES:
   1. GET /events/:id → Carrega página
@@ -264,6 +277,7 @@ export class EventRegistrationModalComponent {
 ## 🔐 Segurança: Sem Mudanças ✅
 
 Ambas as versões:
+
 - ✅ Requerem autenticação
 - ✅ Validam dados no frontend
 - ✅ Validam dados no backend
@@ -275,6 +289,7 @@ Ambas as versões:
 ## 🛠️ Implementação: O Que Mudou
 
 ### Estrutura de Pastas
+
 ```
 ANTES:
 src/app/pages/
@@ -310,6 +325,7 @@ src/app/
 ```
 
 ### Rotas
+
 ```
 ANTES:
 {
@@ -335,6 +351,7 @@ DEPOIS:
 ## 🎓 O Que Aprendemos
 
 ### Boas Práticas Aplicadas ✅
+
 1. **DRY (Don't Repeat Yourself)**: Não repetir dados do usuário
 2. **Single Responsibility**: Cada componente com responsabilidade clara
 3. **Reusability**: Modal pode ser reutilizado em outras páginas
@@ -342,6 +359,7 @@ DEPOIS:
 5. **UX First**: Design pensado na experiência do usuário
 
 ### Patterns Utilizados ✅
+
 1. **Modal Component**: Padrão moderno de UI
 2. **Service Layer**: Lógica centralizada em serviço
 3. **Event Emitters**: Comunicação component → parent
@@ -363,12 +381,12 @@ Se alguém clonar o projeto:
 
 ## 🚀 Conclusão
 
-| Critério | ANTES | DEPOIS |
-|----------|-------|--------|
-| Experiência do Usuário | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Performance | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Manutenibilidade | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Reutilização | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Escalabilidade | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Critério               | ANTES    | DEPOIS     |
+| ---------------------- | -------- | ---------- |
+| Experiência do Usuário | ⭐⭐⭐   | ⭐⭐⭐⭐⭐ |
+| Performance            | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Manutenibilidade       | ⭐⭐⭐   | ⭐⭐⭐⭐⭐ |
+| Reutilização           | ⭐⭐⭐   | ⭐⭐⭐⭐⭐ |
+| Escalabilidade         | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 
 **Resultado:** ✨ **Aplicação moderna, rápida e mantível!** ✨

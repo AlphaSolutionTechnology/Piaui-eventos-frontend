@@ -1,7 +1,10 @@
 import { Component, Input, Output, EventEmitter, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { EventRegistrationService, EventRegistrationData } from '../../services/event-registration.service';
+import {
+  EventRegistrationService,
+  EventRegistrationData,
+} from '../../services/event-registration.service';
 import { AuthService, User } from '../../services/auth';
 
 @Component({
@@ -9,7 +12,7 @@ import { AuthService, User } from '../../services/auth';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './event-registration-modal.html',
-  styleUrls: ['./event-registration-modal.css']
+  styleUrls: ['./event-registration-modal.css'],
 })
 export class EventRegistrationModalComponent implements OnInit {
   @Input() isOpen = false;
@@ -113,10 +116,9 @@ export class EventRegistrationModalComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         this.showErrorMessage(
-          error.error?.message ||
-          'Erro ao confirmar inscrição. Tente novamente.'
+          error.error?.message || 'Erro ao confirmar inscrição. Tente novamente.'
         );
-      }
+      },
     });
   }
 

@@ -1,6 +1,10 @@
 <div class="event-details-root" [class.dark-mode]="isDarkModeActive">
   <!-- Header Reutilizável -->
-  <app-header [isDarkMode]="isDarkModeActive" [showDarkModeToggle]="true" [showCreateEventButton]="false"></app-header>
+  <app-header
+    [isDarkMode]="isDarkModeActive"
+    [showDarkModeToggle]="true"
+    [showCreateEventButton]="false"
+  ></app-header>
 
   <main class="content-wrap">
     <!-- Botão Voltar -->
@@ -208,6 +212,7 @@
     [eventId]="event?.id || 0"
     [eventName]="event?.name || ''"
     (close)="closeRegistrationModal()"
-    (registerSuccess)="handleRegistrationSuccess()">
+    (registerSuccess)="handleRegistrationSuccess()"
+  >
   </app-event-registration-modal>
 </div>

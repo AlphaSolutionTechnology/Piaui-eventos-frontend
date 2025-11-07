@@ -15,6 +15,7 @@ A página `event-registration` foi **removida** e substituída por um **modal de
 ## 📝 Mudanças Implementadas
 
 ### 🗑️ Deletado
+
 ```
 ❌ src/app/pages/event-registration/
    ├── event-registration.ts
@@ -24,6 +25,7 @@ A página `event-registration` foi **removida** e substituída por um **modal de
 ```
 
 ### ✨ Criado
+
 ```
 ✅ src/app/services/event-registration.service.ts
    ├─ Interface: EventRegistrationData
@@ -41,6 +43,7 @@ A página `event-registration` foi **removida** e substituída por um **modal de
 ```
 
 ### ✏️ Modificado
+
 ```
 📝 src/app/pages/event-details/event-details.ts
    ├─ Import: EventRegistrationModalComponent
@@ -103,16 +106,14 @@ PASSO 5: Configurar Resposta
 
 ### 🔴 Críticos (Implementação Obrigatória)
 
-1. **URL do Endpoint** 
+1. **URL do Endpoint**
    - Arquivo: `event-registration.service.ts`
    - Linha: 50
    - O quê: `private registrationUrl`
-   
 2. **Estrutura do Payload**
    - Arquivo: `event-registration.service.ts`
    - Linha: 147
    - Método: `mapToBackendPayload()`
-   
 3. **Interface de Resposta**
    - Arquivo: `event-registration.service.ts`
    - Linha: 22
@@ -121,6 +122,7 @@ PASSO 5: Configurar Resposta
 ### 🟡 Secundários (Implementação Opcional)
 
 4. **Verificar Inscrição Existente**
+
    - Arquivo: `event-registration.service.ts`
    - Linha: 190
    - Método: `checkUserEventRegistration()`
@@ -135,6 +137,7 @@ PASSO 5: Configurar Resposta
 ## 🎨 Dados Que o Modal Passa para o Backend
 
 ### Input (Dados Enviados)
+
 ```typescript
 {
   // ✅ Vem do usuário autenticado (pré-preenchido)
@@ -142,11 +145,11 @@ PASSO 5: Configurar Resposta
   userName: string;         // Nome completo
   userEmail: string;        // Email cadastrado
   userPhoneNumber: string;  // Telefone cadastrado
-  
+
   // ✅ Vem do evento
   eventId: number;          // ID do evento
   eventName: string;        // Nome do evento
-  
+
   // 🆗 Preenchido pelo usuário no modal
   dietaryRestrictions?: string;  // Restrições alimentares
   comments?: string;              // Comentários/observações
@@ -155,6 +158,7 @@ PASSO 5: Configurar Resposta
 ```
 
 ### Output (Resposta Esperada)
+
 ```typescript
 {
   id?: number;
@@ -170,21 +174,25 @@ PASSO 5: Configurar Resposta
 ## 🧪 Como Testar Localmente
 
 ### Passo 1: Iniciar Desenvolvimento
+
 ```bash
 npm start
 ```
 
 ### Passo 2: Fazer Login
+
 - Navegue para /login
 - Faça login com suas credenciais
 
 ### Passo 3: Testar Modal
+
 - Vá para a página de eventos (/events)
 - Clique em um evento para ver detalhes
 - Clique no botão "Inscrever-se"
 - Verifique se o modal abre com dados pré-preenchidos
 
 ### Passo 4: Verificar Requisição
+
 - Abra Developer Tools (F12)
 - Vá para aba Network
 - Clique em "Confirmar Inscrição"
@@ -192,6 +200,7 @@ npm start
 - Verifique o payload vs esperado
 
 ### Passo 5: Validar Erro
+
 - Verifique se erros são exibidos corretamente
 - Teste com dados inválidos
 
@@ -202,6 +211,7 @@ npm start
 Para mais detalhes, consulte:
 
 1. **`INTEGRACAO_BACKEND_INSCRICOES.md`**
+
    - Guia passo a passo de integração
    - Exemplos de diferentes estruturas de payload
    - Troubleshooting detalhado
@@ -217,6 +227,7 @@ Para mais detalhes, consulte:
 ## ✅ Checklist Final
 
 ### Implementação
+
 - [x] Serviço de inscrição criado
 - [x] Modal de confirmação criado
 - [x] Integração em event-details
@@ -225,6 +236,7 @@ Para mais detalhes, consulte:
 - [x] Sem erros de compilação
 
 ### Integração Backend (TODO)
+
 - [ ] Confirmar endpoint com backend
 - [ ] Atualizar `registrationUrl`
 - [ ] Customizar `mapToBackendPayload()`
@@ -232,6 +244,7 @@ Para mais detalhes, consulte:
 - [ ] Validar resposta
 
 ### Qualidade
+
 - [ ] Testar em desktop
 - [ ] Testar em mobile
 - [ ] Testar dark mode
@@ -243,16 +256,19 @@ Para mais detalhes, consulte:
 ## 🚀 Próximos Passos
 
 1. **Comunicar com Backend Team:**
+
    - Qual é o endpoint de inscrição?
    - Qual estrutura de payload é esperada?
    - Quais são os códigos de erro possíveis?
 
 2. **Implementar Integração:**
+
    - Editar `event-registration.service.ts` com informações do backend
    - Testar com Postman/Insomnia primeiro
    - Testar na aplicação
 
 3. **Implementar Funcionalidades Adicionais:**
+
    - Verificar inscrição existente
    - Cancelar inscrição
    - Listar inscrições do usuário
