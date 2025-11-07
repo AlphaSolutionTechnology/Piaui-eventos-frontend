@@ -204,7 +204,7 @@ export class MyEventsPage implements OnInit, OnDestroy {
   }
 
   viewEventDetails(eventId: number): void {
-    this.router.navigate(['/event-details', eventId]);
+    this.router.navigate(['/event', eventId]);
   }
 
   editEvent(eventId: number): void {
