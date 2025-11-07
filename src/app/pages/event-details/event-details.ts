@@ -8,11 +8,12 @@ import {
 } from '../../services/EventDetail/event-detail-service';
 import { AppHeader } from '../../components/app-header/app-header';
 import { AuthService } from '../../services/auth';
+import { EventRegistrationModalComponent } from '../../components/event-registration-modal/event-registration-modal';
 
 @Component({
   standalone: true,
   selector: 'event-details',
-  imports: [CommonModule, RouterModule, AppHeader],
+  imports: [CommonModule, RouterModule, AppHeader, EventRegistrationModalComponent],
   templateUrl: './event-details.html',
   styleUrl: './event-details.css',
   host: {
@@ -38,6 +39,8 @@ export class EventDetailsPage implements OnInit, OnDestroy {
   isBrowser: boolean;
   renderKey = 0;
   showLoginModal = false;
+  showRegistrationModal = false;
+  isUserSubscribed = false;
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -120,16 +123,28 @@ export class EventDetailsPage implements OnInit, OnDestroy {
   handleRegisterClick() {
     // Verifica se o usuário está autenticado
     if (this.authService.isAuthenticated()) {
-      // Se estiver autenticado, redireciona para a página de inscrição
-      this.router.navigate(['/event', this.event?.id, 'register']);
+      // Se estiver autenticado, abre o modal de confirmação de inscrição
+      this.showRegistrationModal = true;
     } else {
-      // Se não estiver autenticado, mostra o modal
+      // Se não estiver autenticado, mostra o modal de login
       this.showLoginModal = true;
     }
   }
 
   closeLoginModal() {
     this.showLoginModal = false;
+  }
+
+  closeRegistrationModal() {
+    this.showRegistrationModal = false;
+  }
+
+  handleRegistrationSuccess() {
+    // Inscrição realizada com sucesso
+    this.showRegistrationModal = false;
+    this.isUserSubscribed = true;
+    // Você pode atualizar dados do evento aqui se desejar
+    this.loadEventData();
   }
 
   goToLogin() {
@@ -144,6 +159,17 @@ export class EventDetailsPage implements OnInit, OnDestroy {
 
   goBack() {
     this.location.back();
+  }
+
+  /**
+   * Manipula evento de desinscrição bem-sucedida
+   */
+  handleUnregistrationSuccess() {
+    console.log('✅ [EVENT-DETAILS] User successfully unregistered from event');
+    this.showRegistrationModal = false;
+    this.isUserSubscribed = false;
+    // Você pode atualizar dados do evento aqui se desejar
+    this.loadEventData();
   }
 
   /**

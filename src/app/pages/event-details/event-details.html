@@ -1,6 +1,10 @@
 <div class="event-details-root" [class.dark-mode]="isDarkModeActive">
   <!-- Header Reutilizável -->
-  <app-header [isDarkMode]="isDarkModeActive" [showDarkModeToggle]="true" [showCreateEventButton]="false"></app-header>
+  <app-header
+    [isDarkMode]="isDarkModeActive"
+    [showDarkModeToggle]="true"
+    [showCreateEventButton]="false"
+  ></app-header>
 
   <main class="content-wrap">
     <!-- Botão Voltar -->
@@ -201,4 +205,16 @@
     </div>
   </div>
   }
+
+  <!-- Modal de Confirmação de Inscrição -->
+  <app-event-registration-modal
+    [isOpen]="showRegistrationModal"
+    [eventId]="event?.id || 0"
+    [eventName]="event?.name || ''"
+    [isUserSubscribed]="isUserSubscribed"
+    (close)="closeRegistrationModal()"
+    (registerSuccess)="handleRegistrationSuccess()"
+    (unregisterSuccess)="handleUnregistrationSuccess()"
+  >
+  </app-event-registration-modal>
 </div>
