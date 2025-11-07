@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth';
-import { map, catchError, of } from 'rxjs';
+import { map, catchError, of, switchMap } from 'rxjs';
 
 /**
  * Guard para proteger rotas que requerem autenticação
@@ -15,6 +15,8 @@ export const authGuard: CanActivateFn = (route, state) => {
   // Verifica se está autenticado (tem dados no localStorage ou BehaviorSubject)
   if (authService.isAuthenticated()) {
     // Usuário autenticado - permitir acesso
+    console.log('✅ [AuthGuard] Usuário autenticado - permitindo acesso');
+    
     // Validar sessão em background (não bloqueia navegação)
     authService.fetchCurrentUser().subscribe({
       error: (error) => {
@@ -30,30 +32,93 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   // Não tem dados no localStorage, mas pode ter cookies HTTP-only válidos
   // Tentar validar sessão antes de redirecionar para login
-  console.log('🔍 [AuthGuard] Tentando validar sessão via cookies HTTP-only...');
+  console.log('🔍 [AuthGuard] Não há dados em memória - tentando validar via cookies HTTP-only...');
+
+  // Tentar obter usuário diretamente via cookies HTTP-only
+  return authService.fetchCurrentUser().pipe(
+    map((user) => {
+      if (user) {
+        console.log('✅ [AuthGuard] Sessão restaurada via cookies - permitindo acesso');
+        return true;
+      }
+      console.log('⚠️ [AuthGuard] Sem sessão válida - redirecionando para login');
+      router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+      return false;
+    }),
+    catchError((error) => {
+      // 🔑 REGRA IMPORTANTE:
+      // - 401 (Unauthorized): Token inválido, mas pode tentar refresh
+      // - 403 (Forbidden): Sessão completamente inválida, NÃO tente refresh
+      
+      if (error && error.status === 401) {
+        // Token pode estar expirado, tentar renovar via refresh
+        console.log('🔒 [AuthGuard] 401 Unauthorized - tentando refresh token...');
+        return authService.refreshToken().pipe(
+          switchMap(() =>
+            authService.fetchCurrentUser().pipe(
+              map((user) => {
+                if (user) {
+                  console.log('✅ [AuthGuard] Sessão restaurada via refresh - permitindo acesso');
+                  return true;
+                }
+                console.log('⚠️ [AuthGuard] Refresh não retornou usuário - redirecionando para login');
+                router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+                return false;
+              })
+            )
+          ),
+          catchError((refreshError) => {
+            console.warn('❌ [AuthGuard] Falha ao renovar sessão (refresh retornou', refreshError?.status, ')');
+            router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+            return of(false);
+          })
+        );
+      }
+
+      if (error && error.status === 403) {
+        // 403 = Sessão inválida/expirada, não tente refresh
+        console.log('🔒 [AuthGuard] 403 Forbidden - Sessão inválida/expirada - redirecionando para login');
+        router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+        return of(false);
+      }
+
+      // Outros erros (500, network, etc): redirecionar para login
+      console.error('❌ [AuthGuard] Erro ao validar sessão:', error?.status, error?.message);
+      router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+      return of(false);
+    })
+  );
+};
+
+/**
+ * Guard que permite acesso à rota mas tenta restaurar usuário se houver cookies válidos
+ * Não redireciona para login, apenas tenta carregar dados via cookies
+ * Útil para rotas que não precisam estar 100% autenticadas no início
+ */
+export const softAuthGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+
+  // Se já está autenticado, permitir
+  if (authService.isAuthenticated()) {
+    console.log('✅ [SoftAuthGuard] Usuário autenticado');
+    return true;
+  }
+
+  // Tentar validar via cookies, mas não redireciona se falhar
+  console.log('🔍 [SoftAuthGuard] Tentando restaurar sessão via cookies...');
   
   return authService.fetchCurrentUser().pipe(
     map((user) => {
       if (user) {
-        // Sessão restaurada com sucesso via cookies HTTP-only
-        console.log('✅ [AuthGuard] Sessão restaurada - permitindo acesso');
-        return true;
+        console.log('✅ [SoftAuthGuard] Sessão restaurada via cookies');
       } else {
-        // Não há sessão válida - redirecionar para login
-        console.log('⚠️ [AuthGuard] Sem sessão válida - redirecionando para login');
-        router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-        return false;
+        console.log('ℹ️ [SoftAuthGuard] Sem sessão válida, mas permitindo acesso à rota pública');
       }
+      return true; // ✅ SEMPRE permite acesso
     }),
     catchError((error) => {
-      // Erro ao validar sessão - redirecionar para login
-      if (error.status === 401 || error.status === 403) {
-        console.log('🔒 [AuthGuard] Sessão inválida ou expirada - redirecionando para login');
-      } else {
-        console.error('❌ [AuthGuard] Erro ao validar sessão:', error);
-      }
-      router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-      return of(false);
+      console.warn('⚠️ [SoftAuthGuard] Erro ao validar cookies, mas permitindo acesso:', error.status);
+      return of(true); // ✅ SEMPRE permite acesso mesmo com erro
     })
   );
 };

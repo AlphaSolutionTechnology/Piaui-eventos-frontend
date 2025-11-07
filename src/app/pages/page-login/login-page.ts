@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { AuthService, AuthResponse } from '../../services/auth';
 import { DarkModeToggleComponent } from '../../components/dark-mode-toggle/dark-mode-toggle';
+import { ToastService } from '../../services/toast.service';
 
 interface LoginForm {
   email: string;
@@ -40,6 +41,7 @@ export class LoginPage implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private toastService: ToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -187,6 +189,6 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   forgotPassword() {
-    alert('Funcionalidade de recuperação de senha será implementada em breve!');
+    this.toastService.info('Funcionalidade de recuperação de senha será implementada em breve!', 5000);
   }
 }

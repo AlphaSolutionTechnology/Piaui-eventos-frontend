@@ -12,7 +12,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, finalize } from 'rxjs';
+import { Subject, takeUntil, finalize } from 'rxjs';
 import { EventsService } from '../../services/events.service';
 import { ApiEvent, EventsResponse, EventsFilter } from '../../models/api-event.interface';
 import { AuthService, User } from '../../services/auth';
@@ -32,7 +32,6 @@ export class EventsPage implements OnInit, OnDestroy {
   @HostBinding('class.dark-mode') isDarkModeActive = false;
 
   private destroy$ = new Subject<void>();
-  private searchSubject = new Subject<string>();
   private darkModeObserver: MutationObserver | null = null;
 
   user: User = {
@@ -98,7 +97,6 @@ export class EventsPage implements OnInit, OnDestroy {
     }
 
     this.loadUserData();
-    this.setupSearchDebounce();
     this.loadEventTypes();
 
     this.subscribeToServiceStates();
@@ -145,16 +143,6 @@ export class EventsPage implements OnInit, OnDestroy {
         next: (types) => {
           this.eventTypes = types;
         },
-      });
-  }
-
-  private setupSearchDebounce(): void {
-    this.searchSubject
-      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe((term) => {
-        this.filters.name = term;
-        this.currentPage = 0;
-        this.loadEvents(200);
       });
   }
 
@@ -208,7 +196,7 @@ export class EventsPage implements OnInit, OnDestroy {
 
   private parseBrazilianDate(dateStr: string): { hours: number } {
     const [datePart, timePart] = dateStr.split(' ');
-    const [, , , hours] = (timePart || '00:00:00').split(':').map(Number);
+    const [hours] = (timePart || '00:00:00').split(':').map(Number);
     return { hours };
   }
 
@@ -216,7 +204,8 @@ export class EventsPage implements OnInit, OnDestroy {
     this.filters = { name: '', timeRange: '', eventType: '' };
     this.currentPage = 0;
     this.hasMoreEvents = true;
-    this.loadEvents();
+    this.filteredEvents = this.events;
+    this.cdr.detectChanges();
   }
 
   onImageError(event: Event): void {
@@ -238,14 +227,16 @@ export class EventsPage implements OnInit, OnDestroy {
   }
 
   onSearchInput(event: Event): void {
+    // Just update the filter value, don't apply filters yet
     const target = event.target as HTMLInputElement;
-    this.searchSubject.next(target.value);
+    this.filters.name = target.value;
+    this.cdr.detectChanges();
   }
 
   applySearchFilters(): void {
     this.currentPage = 0;
-    this.hasMoreEvents = !this.filters.name;
-    this.loadEvents(this.filters.name ? 200 : this.eventsPerPage);
+    this.applyFilters();
+    this.cdr.detectChanges();
   }
 
   loadMoreEvents(): void {
@@ -366,8 +357,15 @@ export class EventsPage implements OnInit, OnDestroy {
       }
     });
 
-    if (!cached && this.authService.isAuthenticated()) {
-      this.authService.fetchCurrentUser().subscribe();
+    // ✅ Apenas tenta buscar dados do usuário se JÁ ESTIVER autenticado
+    // Não fazer requisição desnecessária se não está logado
+    if (this.authService.isAuthenticated() && !cached) {
+      this.authService.fetchCurrentUser().subscribe({
+        error: (error) => {
+          // Se falhar (ex: token expirado), continua sem fazer logout
+          console.warn('Erro ao buscar dados do usuário, mas continua navegando:', error);
+        }
+      });
     }
   }
 

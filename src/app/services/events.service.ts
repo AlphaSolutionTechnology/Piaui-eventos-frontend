@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, tap, throwError, of } from 'rxjs';
 import { ApiEvent, EventsFilter, EventsResponse } from '../models/api-event.interface';
 import { EventRequestDTO, EventResponseDTO, EventLocationDTO } from '../models/event-request.dto';
 import { ViaCepResponse } from '../models/viacep-response.interface';
@@ -269,6 +269,27 @@ export class EventsService {
         this.loadingSubject.next(false);
         this.errorSubject.next('Erro ao carregar eventos inscritos.');
         return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Check if a user is subscribed to a specific event
+   * @param eventId Event ID
+   * @param userId User ID
+   * @returns Observable<boolean> - true if user is subscribed, false otherwise
+   */
+  isUserSubscribedToEvent(eventId: number, userId: number): Observable<boolean> {
+    return this.getRegisteredEvents(userId, 0, 1000).pipe(
+      map(response => {
+        // Procura pelo evento na lista de inscrições
+        const isSubscribed = response.events.some(event => event.id === eventId);
+        console.log(`✅ [EventsService] User ${userId} is${isSubscribed ? '' : ' not'} subscribed to event ${eventId}`);
+        return isSubscribed;
+      }),
+      catchError(error => {
+        console.error('❌ [EventsService] Error checking subscription:', error);
+        return of(false); // Se houver erro, assume que não está inscrito
       })
     );
   }

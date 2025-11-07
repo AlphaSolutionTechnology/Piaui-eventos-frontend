@@ -1,8 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, Inject, PLATFORM_ID, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EventRegistrationService } from '../../services/event-registration.service';
 import { AuthService, User } from '../../services/auth';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-event-registration-modal',
@@ -10,6 +11,7 @@ import { AuthService, User } from '../../services/auth';
   imports: [CommonModule, FormsModule],
   templateUrl: './event-registration-modal.html',
   styleUrls: ['./event-registration-modal.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationModalComponent implements OnInit {
   @Input() isOpen = false;
@@ -31,7 +33,6 @@ export class EventRegistrationModalComponent implements OnInit {
   showConfirmUnsubscribe = false;
 
   // Dados adicionais de inscrição
-  dietaryRestrictions = '';
   comments = '';
   receiveUpdates = true;
   agreeTerms = false;
@@ -39,11 +40,20 @@ export class EventRegistrationModalComponent implements OnInit {
   constructor(
     private registrationService: EventRegistrationService,
     private authService: AuthService,
+    private toastService: ToastService,
+    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
     this.currentUser = this.authService.getCurrentUser();
+    
+    // Subscrever a mudanças no usuário
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.currentUser = user;
+      }
+    });
   }
 
   closeModal() {
@@ -52,7 +62,6 @@ export class EventRegistrationModalComponent implements OnInit {
   }
 
   resetForm() {
-    this.dietaryRestrictions = '';
     this.comments = '';
     this.receiveUpdates = true;
     this.agreeTerms = false;
@@ -60,6 +69,8 @@ export class EventRegistrationModalComponent implements OnInit {
     this.showSuccess = false;
     this.errorMessage = '';
     this.showConfirmUnsubscribe = false;
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   validateForm(): boolean {
@@ -85,18 +96,22 @@ export class EventRegistrationModalComponent implements OnInit {
   async onConfirmRegistration() {
     console.log('🔵 [EVENT-REGISTRATION-MODAL] Starting registration process...');
 
+    if (!this.currentUser) {
+      this.showErrorMessage('Erro: Usuário não encontrado. Faça login primeiro.');
+      this.toastService.error('Usuário não encontrado. Faça login primeiro.');
+      console.log('❌ [EVENT-REGISTRATION-MODAL] Current user is null');
+      return;
+    }
+
     if (!this.validateForm()) {
       console.log('❌ [EVENT-REGISTRATION-MODAL] Form validation failed');
       return;
     }
 
-    if (!this.currentUser) {
-      this.showErrorMessage('Erro: Usuário não encontrado');
-      console.log('❌ [EVENT-REGISTRATION-MODAL] Current user is null');
-      return;
-    }
-
     this.isLoading = true;
+    this.showSuccess = false;
+    this.showError = false;
+    this.cdr.detectChanges();
 
     try {
       console.log(
@@ -106,19 +121,22 @@ export class EventRegistrationModalComponent implements OnInit {
       // Call the async service method
       await this.registrationService.registerUserToEvent(this.eventId, this.currentUser.id);
 
-      this.isLoading = false;
-      this.showSuccess = true;
       console.log('✅ [EVENT-REGISTRATION-MODAL] Registration successful');
 
-      // Close modal and notify success after 2 seconds
-      setTimeout(() => {
-        this.registerSuccess.emit();
-        this.closeModal();
-      }, 2000);
+      // Mostrar toast de sucesso
+      this.toastService.success('✅ Inscrição confirmada com sucesso!', 3000);
+
+      // Fechar modal imediatamente
+      this.registerSuccess.emit();
+      this.closeModal();
+      
     } catch (error: any) {
+      console.log('❌ [EVENT-REGISTRATION-MODAL] Catch block triggered', error);
       this.isLoading = false;
+      this.cdr.detectChanges();
       const errorMsg = error.message || 'Erro ao confirmar inscrição. Tente novamente.';
       this.showErrorMessage(errorMsg);
+      this.toastService.error(`Erro: ${errorMsg}`, 5000);
       console.log(`❌ [EVENT-REGISTRATION-MODAL] Registration error: ${errorMsg}`);
     }
   }
@@ -148,11 +166,15 @@ export class EventRegistrationModalComponent implements OnInit {
 
     if (!this.currentUser) {
       this.showErrorMessage('Erro: Usuário não encontrado');
+      this.toastService.error('Usuário não encontrado');
       console.log('❌ [EVENT-REGISTRATION-MODAL] Current user is null during unsubscribe');
       return;
     }
 
     this.isLoading = true;
+    this.showSuccess = false;
+    this.showError = false;
+    this.cdr.detectChanges();
 
     try {
       console.log(
@@ -162,20 +184,22 @@ export class EventRegistrationModalComponent implements OnInit {
       // Call the async service method
       await this.registrationService.unregisterUserFromEvent(this.eventId, this.currentUser.id);
 
-      this.isLoading = false;
-      this.showConfirmUnsubscribe = false;
-      this.showSuccess = true;
       console.log('✅ [EVENT-REGISTRATION-MODAL] Unsubscribe successful');
 
-      // Close modal and notify success after 2 seconds
-      setTimeout(() => {
-        this.unregisterSuccess.emit();
-        this.closeModal();
-      }, 2000);
+      // Mostrar toast de sucesso
+      this.toastService.success('✅ Inscrição cancelada com sucesso!', 3000);
+
+      // Fechar modal imediatamente
+      this.unregisterSuccess.emit();
+      this.closeModal();
+      
     } catch (error: any) {
+      console.log('❌ [EVENT-REGISTRATION-MODAL] Catch block triggered', error);
       this.isLoading = false;
+      this.cdr.detectChanges();
       const errorMsg = error.message || 'Erro ao cancelar inscrição. Tente novamente.';
       this.showErrorMessage(errorMsg);
+      this.toastService.error(`Erro: ${errorMsg}`, 5000);
       console.log(`❌ [EVENT-REGISTRATION-MODAL] Unsubscribe error: ${errorMsg}`);
     }
   }

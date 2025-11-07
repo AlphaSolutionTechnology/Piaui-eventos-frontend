@@ -443,6 +443,16 @@
   box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
 }
 
+.register-btn.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.register-btn.danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
 .register-btn.secondary {
   background: rgba(99, 102, 241, 0.1);
   color: #6366f1;
@@ -809,6 +819,17 @@
 :host.dark-mode .register-btn:hover,
 .dark-mode .register-btn:hover {
   box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+}
+
+:host.dark-mode .register-btn.danger,
+.dark-mode .register-btn.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+:host.dark-mode .register-btn.danger:hover,
+.dark-mode .register-btn.danger:hover {
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.6);
 }
 
 /* Botão Secundário (Lista de Desejos) */

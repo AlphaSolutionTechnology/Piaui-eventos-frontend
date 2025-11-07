@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, PLATFORM_ID, inject, HostBinding } from '@angular/core';
+import { Component, OnInit, OnDestroy, PLATFORM_ID, inject, HostBinding, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
@@ -7,7 +7,8 @@ import {
   EventLocation,
 } from '../../services/EventDetail/event-detail-service';
 import { AppHeader } from '../../components/app-header/app-header';
-import { AuthService } from '../../services/auth';
+import { AuthService, User } from '../../services/auth';
+import { EventsService } from '../../services/events.service';
 import { EventRegistrationModalComponent } from '../../components/event-registration-modal/event-registration-modal';
 
 @Component({
@@ -25,11 +26,13 @@ export class EventDetailsPage implements OnInit, OnDestroy {
   private darkModeObserver: MutationObserver | null = null;
 
   private eventdetailservice = inject(EventDetailService);
+  private eventsService = inject(EventsService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
   private location = inject(Location);
+  private cdr = inject(ChangeDetectorRef);
 
   event: EventDetailResponse | null = null;
   eventlocation: EventLocation | null = null;
@@ -94,6 +97,9 @@ export class EventDetailsPage implements OnInit, OnDestroy {
         this.isLoading = false;
         this.showContent = true;
         this.renderKey++;
+
+        // Verificar se o usuário está inscrito neste evento
+        this.checkUserSubscription(eventId);
       },
       error: (error) => {
         this.error = 'Erro ao carregar evento. Tente novamente.';
@@ -101,6 +107,35 @@ export class EventDetailsPage implements OnInit, OnDestroy {
         this.showContent = false;
         this.renderKey++;
       },
+    });
+  }
+
+  /**
+   * Verifica se o usuário está inscrito no evento
+   */
+  private checkUserSubscription(eventId: number): void {
+    const currentUser = this.authService.getCurrentUser();
+    
+    if (!currentUser || currentUser.id === 0) {
+      console.log('ℹ️ [EVENT-DETAILS] Usuário não autenticado, não verificando inscrição');
+      this.isUserSubscribed = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.eventsService.isUserSubscribedToEvent(eventId, currentUser.id).subscribe({
+      next: (isSubscribed) => {
+        this.isUserSubscribed = isSubscribed;
+        console.log(`📋 [EVENT-DETAILS] User subscription status: ${isSubscribed ? 'inscrito' : 'não inscrito'}`);
+        // Trigger change detection to update button state
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ [EVENT-DETAILS] Erro ao verificar inscrição:', error);
+        this.isUserSubscribed = false;
+        // Trigger change detection even on error
+        this.cdr.detectChanges();
+      }
     });
   }
 

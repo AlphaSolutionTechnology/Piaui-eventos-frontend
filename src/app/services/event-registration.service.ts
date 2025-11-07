@@ -53,27 +53,39 @@ export class EventRegistrationService {
     this.registrationErrorSubject.next(null);
 
     try {
-      // Obter token do usuário autenticado
-      const user = this.authService.getCurrentUser();
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       // Preparar o payload conforme documentação do backend
       const payload: UserRegistrationDTO = {
         userId,
       };
 
+      const token = this.getAccessToken();
+      
+      // Construir headers
+      const headers: any = {
+        'Content-Type': 'application/json',
+      };
+
+      // Adicionar Authorization header se tiver token
+      if (token) {
+        console.log('📤 [REGISTRATION] Adicionando Bearer token ao header');
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        console.log('📤 [REGISTRATION] Sem Bearer token - usando cookies HTTP-only');
+      }
+
+      const url = `${this.apiUrl}/events/${eventId}/register`;
+      console.log(`📤 [REGISTRATION] POST ${url}`);
+      console.log('📤 [REGISTRATION] Payload:', JSON.stringify(payload));
+
       // Chamar endpoint de inscrição
-      const response = await fetch(`${this.apiUrl}/events/${eventId}/register`, {
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.getAccessToken()}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Enviar cookies
+        headers,
+        credentials: 'include', // Enviar cookies (incluindo accessToken HTTP-only)
         body: JSON.stringify(payload),
       });
+
+      console.log(`📥 [REGISTRATION] Response status: ${response.status} ${response.statusText}`);
 
       // Tratamento de erros baseado no status HTTP
       if (!response.ok) {
@@ -106,19 +118,30 @@ export class EventRegistrationService {
     this.registrationErrorSubject.next(null);
 
     try {
-      const user = this.authService.getCurrentUser();
-      if (!user) {
-        throw new Error('Usuário não autenticado');
+      const token = this.getAccessToken();
+
+      // Construir headers
+      const headers: any = {};
+
+      // Adicionar Authorization header se tiver token
+      if (token) {
+        console.log('📤 [UNREGISTER] Adicionando Bearer token ao header');
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        console.log('📤 [UNREGISTER] Sem Bearer token - usando cookies HTTP-only');
       }
 
+      const url = `${this.apiUrl}/events/${eventId}/register/${userId}`;
+      console.log(`📤 [UNREGISTER] DELETE ${url}`);
+
       // Chamar endpoint de desinscrição
-      const response = await fetch(`${this.apiUrl}/events/${eventId}/register/${userId}`, {
+      const response = await fetch(url, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${this.getAccessToken()}`,
-        },
-        credentials: 'include',
+        headers,
+        credentials: 'include', // Enviar cookies
       });
+
+      console.log(`📥 [UNREGISTER] Response status: ${response.status} ${response.statusText}`);
 
       // Status 204 No Content é o esperado para DELETE bem-sucedido
       if (response.status !== 204 && !response.ok) {
@@ -189,12 +212,24 @@ export class EventRegistrationService {
       return '';
     }
 
-    // Tentar obter do localStorage (onde o AuthService salva)
+    // O backend usa cookies HTTP-only, então não temos acesso direto ao token via JS
+    // Mas alguns backends também aceitam token no localStorage como fallback
+    // Se o backend usa cookies HTTP-only, este será uma string vazia
+    // e o navegador enviará os cookies automaticamente com credentials: 'include'
     try {
-      // O token geralmente é salvo via cookie HTTP-only
-      // Se necessário acessar via JS, pode estar em localStorage
-      return localStorage.getItem('accessToken') || '';
-    } catch {
+      // Tentar obter do localStorage como fallback
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        console.log('🔐 [TOKEN] Encontrado accessToken no localStorage (', token.substring(0, 20) + '...' + ')');
+        return token;
+      }
+      
+      // Se não houver em localStorage, retornar vazio
+      // O navegador enviará cookies automaticamente com withCredentials
+      console.log('🔐 [TOKEN] Nenhum accessToken no localStorage - usando cookies HTTP-only');
+      return '';
+    } catch (error) {
+      console.error('🔐 [TOKEN] Erro ao recuperar token:', error);
       return '';
     }
   }

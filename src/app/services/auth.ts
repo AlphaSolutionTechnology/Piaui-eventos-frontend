@@ -108,6 +108,9 @@ export class AuthService {
    *   "phoneNumber": "86995855963",
    *   "role": { "roleId": 1, "roleName": "admin" }
    * }
+   * 
+   * ⚠️ IMPORTANTE: Este método PROPAGA o erro 401/403 para que o guard possa tratá-lo
+   * O guard sabe quando há erro vs quando não há sessão
    */
   fetchCurrentUser(): Observable<User | null> {
     return this.http.get<UserMeResponse>(`${this.apiUrl}/user/me`).pipe(
@@ -141,16 +144,17 @@ export class AuthService {
         return user;
       }),
       catchError((error) => {
-        // Não logar erro se for 403/401 em /user/me - é esperado quando não está autenticado
-        if (error.status !== 401 && error.status !== 403) {
-          console.error('Erro ao buscar dados do usuário:', error);
-        }
-
+        // ⚠️ IMPORTANTE: Limpar dados se receber 401/403
         if (error.status === 401 || error.status === 403) {
+          console.warn(`⚠️ [fetchCurrentUser] ${error.status} - Sessão inválida ou cookies expirados`);
           this.clearUserData();
+        } else {
+          console.error('❌ Erro ao buscar dados do usuário:', error);
         }
 
-        return of(null);
+        // PROPAGAR o erro para que o guard possa tratá-lo adequadamente
+        // O guard diferencia entre "usuário não autenticado" e "erro de rede"
+        return throwError(() => error);
       })
     );
   }
@@ -351,21 +355,25 @@ export class AuthService {
    * Atualiza o token de autenticação (refresh token)
    * O backend gerencia os cookies HTTP-only automaticamente
    * O authInterceptor adiciona automaticamente withCredentials: true
+   * Se o refresh falhar, não faz logout aqui (deixa o guard decidir)
    */
   refreshToken(): Observable<any> {
     const refreshUrl = `${this.apiUrl}/auth/refresh`;
 
+    // Os cookies HTTP-only (incluindo refresh token) são enviados automaticamente
+    // com withCredentials: true. Não precisa enviar o token no corpo.
     return this.http.post<any>(refreshUrl, {}).pipe(
       tap((response) => {
+        console.log('✅ [refreshToken] Token renovado com sucesso');
         // Backend atualiza os cookies automaticamente
         // Apenas recarregar dados do usuário
         this.fetchCurrentUser().subscribe();
       }),
       catchError((error) => {
-        console.error('Erro ao renovar token:', error);
-        // Se falhar, fazer logout
-        this.logout();
-        return of(null);
+        // ⚠️ Não fazer logout aqui
+        // Deixar o guard tratar o erro de refresh
+        console.error('❌ [refreshToken] Erro ao renovar token:', error?.status);
+        return throwError(() => error);
       })
     );
   }

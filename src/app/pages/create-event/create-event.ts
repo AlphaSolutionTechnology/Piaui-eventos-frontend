@@ -1,10 +1,11 @@
 import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { EventsService } from '../../services/events.service';
 import { UserService } from '../../services/user.service';
 import { ApiEvent } from '../../models/api-event.interface';
+import { ToastService } from '../../services/toast.service';
 
 interface CreateEventForm {
   title: string;
@@ -61,6 +62,12 @@ export class CreateEventComponent implements OnInit, OnDestroy {
   selectedImagePreview: string | null = null;
   tagInput = '';
 
+  // Edit mode tracking
+  isEditMode = false;
+  eventIdToEdit: number | null = null;
+  pageTitle = 'Criar Novo Evento';
+  submitButtonText = 'Criar Evento';
+
   createEventForm: CreateEventForm = {
     title: '',
     description: '',
@@ -97,13 +104,27 @@ export class CreateEventComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private location: Location,
     private eventsService: EventsService,
     private userService: UserService,
+    private toastService: ToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
+    // Check if we're in edit mode by looking at the route parameter
+    this.activatedRoute.paramMap.subscribe((params) => {
+      const idParam = params.get('id');
+      if (idParam) {
+        this.eventIdToEdit = parseInt(idParam, 10);
+        this.isEditMode = true;
+        this.pageTitle = 'Editar Evento';
+        this.submitButtonText = 'Atualizar Evento';
+        this.loadEventForEditing(this.eventIdToEdit);
+      }
+    });
+
     this.setMinDate();
     this.observeDarkMode();
   }
@@ -421,6 +442,82 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     return email.length > 0 && this.isValidEmail(email);
   }
 
+  /**
+   * Load existing event data for editing
+   */
+  loadEventForEditing(eventId: number) {
+    this.isLoading = true;
+    this.eventsService.getEventById(eventId).subscribe({
+      next: (event) => {
+        this.isLoading = false;
+        this.populateFormWithEventData(event);
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error loading event for editing:', error);
+        this.toastService.error('Erro ao carregar evento para edição');
+        setTimeout(() => {
+          this.router.navigate(['/my-events']);
+        }, 2000);
+      }
+    });
+  }
+
+  /**
+   * Map API event data to form structure
+   */
+  populateFormWithEventData(event: any) {
+    try {
+      // Parse date and time from eventDate field (format: "30/11/2025 14:30:00")
+      let date = '';
+      let time = '';
+      
+      if (event.eventDate) {
+        const parts = event.eventDate.split(' ');
+        if (parts.length === 2) {
+          const dateParts = parts[0].split('/');
+          if (dateParts.length === 3) {
+            // Convert from DD/MM/YYYY to YYYY-MM-DD for input type="date"
+            date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            time = parts[1].substring(0, 5); // Get HH:MM from HH:MM:SS
+          }
+        }
+      }
+
+      // Pre-populate form
+      this.createEventForm = {
+        title: event.name || event.title || '',
+        description: event.description || '',
+        category: event.eventType || event.category || '',
+        date: date,
+        time: time,
+        zipCode: event.zipCode || '',
+        location: event.location?.name || event.location || '',
+        address: event.address || '',
+        price: event.price || 0,
+        maxParticipants: event.maxSubs || event.maxParticipants || 50,
+        organizerName: event.createdBy?.name || '',
+        organizerEmail: event.createdBy?.email || '',
+        organizerPhone: event.organizerPhone || '',
+        image: null,
+        tags: event.tags || [],
+        requiresApproval: event.requiresApproval || false,
+        isPublic: event.isPublic !== false,
+        allowWaitlist: event.allowWaitlist !== false
+      };
+
+      // Set image preview if available
+      if (event.imageUrl) {
+        this.selectedImagePreview = event.imageUrl;
+      }
+    } catch (error) {
+      console.error('Error mapping event data to form:', error);
+      this.toastService.error('Erro ao carregar dados do evento');
+    }
+  }
+
   onSubmit() {
     if (!this.validateCurrentStep()) {
       return;
@@ -430,84 +527,118 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     this.showError = false;
     this.errorMessage = '';
 
-    // First, get the current user to obtain their ID
-    this.userService.getUserProfile().subscribe({
-      next: (userProfile) => {
-        // Map form data to ApiEvent format
-        const eventData: Partial<ApiEvent> = {
-          title: this.createEventForm.title,
-          name: this.createEventForm.title,
-          description: this.createEventForm.description,
-          category: this.createEventForm.category,
-          eventType: this.createEventForm.category,
-          date: this.createEventForm.date,
-          time: this.createEventForm.time,
-          zipCode: this.createEventForm.zipCode.replace(/\D/g, ''), // Send only numbers
-          location: this.createEventForm.location,
-          address: this.createEventForm.address,
-          price: this.createEventForm.price,
-          maxParticipants: this.createEventForm.maxParticipants,
-          organizerName: this.createEventForm.organizerName,
-          organizerEmail: this.createEventForm.organizerEmail,
-          organizerPhone: this.createEventForm.organizerPhone,
-          imageUrl: this.selectedImagePreview || 'assets/events/evento-exemplo.svg',
-          tags: this.createEventForm.tags,
-          requiresApproval: this.createEventForm.requiresApproval,
-          isPublic: this.createEventForm.isPublic,
-          allowWaitlist: this.createEventForm.allowWaitlist,
-          status: 'published',
-          currentParticipants: 0
-        };
+    // Map form data to ApiEvent format
+    const eventData: Partial<ApiEvent> = {
+      title: this.createEventForm.title,
+      name: this.createEventForm.title,
+      description: this.createEventForm.description,
+      category: this.createEventForm.category,
+      eventType: this.createEventForm.category,
+      date: this.createEventForm.date,
+      time: this.createEventForm.time,
+      zipCode: this.createEventForm.zipCode.replace(/\D/g, ''), // Send only numbers
+      location: this.createEventForm.location,
+      address: this.createEventForm.address,
+      price: this.createEventForm.price,
+      maxParticipants: this.createEventForm.maxParticipants,
+      organizerName: this.createEventForm.organizerName,
+      organizerEmail: this.createEventForm.organizerEmail,
+      organizerPhone: this.createEventForm.organizerPhone,
+      imageUrl: this.selectedImagePreview || 'assets/events/evento-exemplo.svg',
+      tags: this.createEventForm.tags,
+      requiresApproval: this.createEventForm.requiresApproval,
+      isPublic: this.createEventForm.isPublic,
+      allowWaitlist: this.createEventForm.allowWaitlist,
+      status: 'published',
+      currentParticipants: 0
+    };
 
-        // Call the API to create the event with userId
-        this.eventsService.createEvent(eventData, userProfile.id).subscribe({
-          next: (createdEvent) => {
-            this.isLoading = false;
-            this.showSuccess = true;
-            console.log('Event created successfully:', createdEvent);
+    if (this.isEditMode && this.eventIdToEdit) {
+      // Update existing event
+      this.eventsService.updateEvent(this.eventIdToEdit, eventData).subscribe({
+        next: (updatedEvent) => {
+          this.isLoading = false;
+          this.showSuccess = true;
+          this.toastService.success('Evento atualizado com sucesso!');
+          console.log('Event updated successfully:', updatedEvent);
 
-            // Redirect after success
-            setTimeout(() => {
-              this.router.navigate(['/events']);
-            }, 2000);
-          },
-          error: (error) => {
-            this.isLoading = false;
-            console.error('Error creating event:', error);
-            
-            // Extract error message from different possible sources
-            if (error.error?.message) {
-              this.errorMessage = error.error.message;
-            } else if (error.error?.error) {
-              this.errorMessage = error.error.error;
-            } else if (error.status === 0) {
-              this.errorMessage = 'Sem conexão com a internet. Verifique sua conexão e tente novamente.';
-            } else if (error.status === 400) {
-              this.errorMessage = 'Dados inválidos. Verifique os campos e tente novamente.';
-            } else if (error.status === 401 || error.status === 403) {
-              this.errorMessage = 'Você não tem permissão para criar eventos. Faça login novamente.';
-            } else if (error.status === 500) {
-              this.errorMessage = 'Erro no servidor ao criar evento. Tente novamente mais tarde.';
-            } else {
-              this.errorMessage = 'Erro ao criar evento. Verifique os dados e tente novamente.';
+          // Redirect after success
+          setTimeout(() => {
+            this.router.navigate(['/my-events']);
+          }, 2000);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Error updating event:', error);
+          this.handleSubmitError(error, 'atualizar');
+        }
+      });
+    } else {
+      // Create new event - need user ID
+      this.userService.getUserProfile().subscribe({
+        next: (userProfile) => {
+          this.eventsService.createEvent(eventData, userProfile.id).subscribe({
+            next: (createdEvent) => {
+              this.isLoading = false;
+              this.showSuccess = true;
+              this.toastService.success('Evento criado com sucesso!');
+              console.log('Event created successfully:', createdEvent);
+
+              // Redirect after success
+              setTimeout(() => {
+                this.router.navigate(['/events']);
+              }, 2000);
+            },
+            error: (error) => {
+              this.isLoading = false;
+              console.error('Error creating event:', error);
+              this.handleSubmitError(error, 'criar');
             }
-            
-            this.showError = true;
-          }
-        });
-      },
-      error: (error) => {
-        this.isLoading = false;
-        console.error('Error fetching user profile:', error);
-        this.errorMessage = 'Erro ao obter informações do usuário. Faça login novamente.';
-        this.showError = true;
-        
-        // Redirect to login if user is not authenticated
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
-      }
-    });
+          });
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Error fetching user profile:', error);
+          this.errorMessage = 'Erro ao obter informações do usuário. Faça login novamente.';
+          this.showError = true;
+          this.toastService.error('Erro ao obter informações do usuário');
+
+          // Redirect to login if user is not authenticated
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 2000);
+        }
+      });
+    }
+  }
+
+  /**
+   * Handle submit errors with appropriate messages
+   */
+  private handleSubmitError(error: any, action: string) {
+    // Extract error message from different possible sources
+    if (error.error?.message) {
+      this.errorMessage = error.error.message;
+    } else if (error.error?.error) {
+      this.errorMessage = error.error.error;
+    } else if (error.status === 0) {
+      this.errorMessage = 'Sem conexão com a internet. Verifique sua conexão e tente novamente.';
+    } else if (error.status === 400) {
+      this.errorMessage = 'Dados inválidos. Verifique os campos e tente novamente.';
+    } else if (error.status === 401 || error.status === 403) {
+      this.errorMessage = 'Você não tem permissão para ' + action + ' eventos. Faça login novamente.';
+    } else if (error.status === 404) {
+      this.errorMessage = 'Evento não encontrado.';
+    } else if (error.status === 409) {
+      this.errorMessage = 'Conflito ao ' + action + ' evento. O evento pode ter sido modificado por outro usuário.';
+    } else if (error.status === 500) {
+      this.errorMessage = 'Erro no servidor ao ' + action + ' evento. Tente novamente mais tarde.';
+    } else {
+      this.errorMessage = 'Erro ao ' + action + ' evento. Verifique os dados e tente novamente.';
+    }
+    
+    this.showError = true;
+    this.toastService.error(this.errorMessage);
   }
 
   getCategoryIcon(categoryId: string): string {

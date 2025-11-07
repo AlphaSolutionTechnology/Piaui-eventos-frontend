@@ -57,6 +57,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Criar Evento - Piauí Eventos',
   },
+  {
+    path: 'create-event/:id',
+    component: CreateEventComponent,
+    canActivate: [authGuard],
+    title: 'Editar Evento - Piauí Eventos',
+  },
 
   // === ROTA WILDCARD (SEMPRE POR ÚLTIMO) ===
   {
