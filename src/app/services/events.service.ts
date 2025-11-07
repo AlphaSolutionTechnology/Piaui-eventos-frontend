@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'rxjs';
 import { ApiEvent, EventsFilter, EventsResponse } from '../models/api-event.interface';
-import { EventRequestDTO, EventResponseDTO, EventLocationDTO } from '../models/event-request.dto';
+import { EventRequestDTO, EventResponseDTO, EventLocationDTO, EventUpdateDTO } from '../models/event-request.dto';
 import { ViaCepResponse } from '../models/viacep-response.interface';
 import { environment } from '../../../enviroment';
 
@@ -150,39 +150,6 @@ export class EventsService {
     );
   }
 
-  updateEvent(id: number, eventData: Partial<ApiEvent>): Observable<ApiEvent> {
-    this.loadingSubject.next(true);
-    this.errorSubject.next(null);
-    const payload = this.mapToBackendEvent(eventData);
-
-    return this.http.put<BackendEvent>(`${this.apiUrl}/${id}`, payload).pipe(
-      map(event => this.transformBackendEvent(event)),
-      tap(() => this.loadingSubject.next(false)),
-      catchError(error => {
-        this.loadingSubject.next(false);
-        this.errorSubject.next('Erro ao atualizar evento.');
-        return throwError(() => error);
-      })
-    );
-  }
-
-  deleteEvent(id: number): Observable<void> {
-    this.loadingSubject.next(true);
-    this.errorSubject.next(null);
-
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-      tap(() => {
-        this.loadingSubject.next(false);
-        this.eventsSubject.next(this.eventsSubject.value.filter(e => e.id !== id));
-      }),
-      catchError(error => {
-        this.loadingSubject.next(false);
-        this.errorSubject.next('Erro ao deletar evento.');
-        return throwError(() => error);
-      })
-    );
-  }
-
   getCategories(): Observable<string[]> {
     return new Observable(observer => {
       observer.next([
@@ -268,6 +235,68 @@ export class EventsService {
       catchError(error => {
         this.loadingSubject.next(false);
         this.errorSubject.next('Erro ao carregar eventos inscritos.');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Update an existing event (partial update)
+   * Endpoint: PATCH /api/events/{id}
+   * @param eventId Event ID to update
+   * @param updateData Partial event data to update
+   */
+  updateEvent(eventId: number, updateData: EventUpdateDTO): Observable<EventResponseDTO> {
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    return this.http.patch<EventResponseDTO>(`${this.apiUrl}/${eventId}`, updateData).pipe(
+      tap(() => this.loadingSubject.next(false)),
+      catchError(error => {
+        this.loadingSubject.next(false);
+        this.errorSubject.next('Erro ao atualizar evento.');
+        console.error('Error updating event:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Delete an event
+   * Endpoint: DELETE /api/events/{id}
+   * @param eventId Event ID to delete
+   */
+  deleteEvent(eventId: number): Observable<void> {
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    return this.http.delete<void>(`${this.apiUrl}/${eventId}`).pipe(
+      tap(() => this.loadingSubject.next(false)),
+      catchError(error => {
+        this.loadingSubject.next(false);
+        this.errorSubject.next('Erro ao deletar evento.');
+        console.error('Error deleting event:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Unregister user from an event
+   * Endpoint: DELETE /api/events/{eventId}/register/{userId}
+   * @param eventId Event ID
+   * @param userId User ID
+   */
+  unregisterUser(eventId: number, userId: number): Observable<void> {
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    return this.http.delete<void>(`${this.apiUrl}/${eventId}/register/${userId}`).pipe(
+      tap(() => this.loadingSubject.next(false)),
+      catchError(error => {
+        this.loadingSubject.next(false);
+        this.errorSubject.next('Erro ao cancelar inscrição.');
+        console.error('Error unregistering user:', error);
         return throwError(() => error);
       })
     );

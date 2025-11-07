@@ -208,13 +208,53 @@ export class MyEventsPage implements OnInit, OnDestroy {
   }
 
   editEvent(eventId: number): void {
-    // Implementar edição de evento depois
-    console.log('Editar evento:', eventId);
+    // Redirect to create-event page with event ID for editing
+    this.router.navigate(['/create-event'], { queryParams: { id: eventId } });
   }
 
   deleteEvent(eventId: number): void {
-    // Implementar exclusão de evento depois
-    console.log('Deletar evento:', eventId);
+    if (!confirm('Tem certeza que deseja deletar este evento? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    this.eventsService.deleteEvent(eventId).subscribe({
+      next: () => {
+        // Remove event from the list
+        if (this.activeTab === 'created') {
+          this.createdEvents = this.createdEvents.filter(e => e.id !== eventId);
+        }
+        alert('Evento deletado com sucesso!');
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error deleting event:', error);
+        alert('Erro ao deletar evento. Tente novamente.');
+      }
+    });
+  }
+
+  cancelRegistration(eventId: number): void {
+    if (!confirm('Tem certeza que deseja cancelar sua inscrição neste evento?')) {
+      return;
+    }
+
+    if (!this.user || this.user.id === 0) {
+      alert('Usuário não identificado.');
+      return;
+    }
+
+    this.eventsService.unregisterUser(eventId, this.user.id).subscribe({
+      next: () => {
+        // Remove event from registered events list
+        this.registeredEvents = this.registeredEvents.filter(e => e.id !== eventId);
+        alert('Inscrição cancelada com sucesso!');
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error canceling registration:', error);
+        alert('Erro ao cancelar inscrição. Tente novamente.');
+      }
+    });
   }
 
   /**

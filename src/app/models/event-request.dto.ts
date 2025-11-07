@@ -36,3 +36,18 @@ export interface EventResponseDTO {
   location: EventLocationDTO;
   version?: number;
 }
+
+/**
+ * DTO for updating an existing event (partial update)
+ * Based on com.alphasolutions.piauieventos.dto.EventUpdateDTO
+ */
+export interface EventUpdateDTO {
+  name?: string;
+  description?: string;
+  imageUrl?: string;
+  eventDate?: string; // LocalDateTime format: "yyyy-MM-ddTHH:mm:ss"
+  eventType?: string;
+  maxSubs?: number;
+  location?: EventLocationDTO;
+}
+

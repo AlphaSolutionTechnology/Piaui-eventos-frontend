@@ -1,10 +1,11 @@
 import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { EventsService } from '../../services/events.service';
 import { UserService } from '../../services/user.service';
 import { ApiEvent } from '../../models/api-event.interface';
+import { EventUpdateDTO } from '../../models/event-request.dto';
 
 interface CreateEventForm {
   title: string;
@@ -57,6 +58,10 @@ export class CreateEventComponent implements OnInit, OnDestroy {
   isLoadingAddress = false;
   cepError = '';
   emailError = '';
+  
+  // Edit mode
+  isEditMode = false;
+  editingEventId: number | null = null;
 
   selectedImagePreview: string | null = null;
   tagInput = '';
@@ -97,6 +102,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private location: Location,
     private eventsService: EventsService,
     private userService: UserService,
@@ -106,6 +112,68 @@ export class CreateEventComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.setMinDate();
     this.observeDarkMode();
+    this.checkEditMode();
+  }
+  
+  checkEditMode(): void {
+    this.route.queryParams.subscribe(params => {
+      const eventId = params['id'];
+      if (eventId) {
+        this.isEditMode = true;
+        this.editingEventId = +eventId;
+        this.loadEventForEdit(this.editingEventId);
+      }
+    });
+  }
+  
+  loadEventForEdit(eventId: number): void {
+    this.isLoading = true;
+    this.eventsService.getEventById(eventId).subscribe({
+      next: (event) => {
+        if (!event) {
+          this.showError = true;
+          this.errorMessage = 'Evento não encontrado.';
+          this.isLoading = false;
+          return;
+        }
+        
+        // Populate form with event data
+        this.createEventForm = {
+          title: event.name || event.title || '',
+          description: event.description || '',
+          category: event.eventType || event.category || '',
+          date: event.date?.split('T')[0] || event.eventDate?.split('T')[0] || '',
+          time: event.time || this.extractTime(event.eventDate || ''),
+          zipCode: event.zipCode || '',
+          location: event.location || '',
+          address: event.address || '',
+          price: event.price || 0,
+          maxParticipants: event.maxParticipants || 50,
+          organizerName: event.organizerName || '',
+          organizerEmail: event.organizerEmail || '',
+          organizerPhone: event.organizerPhone || '',
+          image: null,
+          tags: event.tags || [],
+          requiresApproval: event.requiresApproval || false,
+          isPublic: event.isPublic !== undefined ? event.isPublic : true,
+          allowWaitlist: event.allowWaitlist !== undefined ? event.allowWaitlist : true
+        };
+        this.selectedImagePreview = event.imageUrl || null;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading event:', error);
+        this.showError = true;
+        this.errorMessage = 'Erro ao carregar evento para edição.';
+        this.isLoading = false;
+      }
+    });
+  }
+  
+  extractTime(dateTimeString: string): string {
+    if (!dateTimeString) return '';
+    const timePart = dateTimeString.split('T')[1];
+    return timePart ? timePart.substring(0, 5) : '';
   }
 
   ngOnDestroy() {
@@ -430,6 +498,12 @@ export class CreateEventComponent implements OnInit, OnDestroy {
     this.showError = false;
     this.errorMessage = '';
 
+    // If in edit mode, update the event instead of creating
+    if (this.isEditMode && this.editingEventId) {
+      this.updateEvent();
+      return;
+    }
+
     // First, get the current user to obtain their ID
     this.userService.getUserProfile().subscribe({
       next: (userProfile) => {
@@ -506,6 +580,62 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 2000);
+      }
+    });
+  }
+  
+  updateEvent(): void {
+    if (!this.editingEventId) {
+      return;
+    }
+
+    // Combine date and time into ISO format
+    const eventDateTime = `${this.createEventForm.date}T${this.createEventForm.time}:00`;
+
+    // Build update DTO
+    const updateData: EventUpdateDTO = {
+      name: this.createEventForm.title,
+      description: this.createEventForm.description,
+      imageUrl: this.selectedImagePreview || 'assets/events/evento-exemplo.svg',
+      eventDate: eventDateTime,
+      eventType: this.createEventForm.category,
+      maxSubs: this.createEventForm.maxParticipants,
+      location: {
+        placeName: this.createEventForm.location,
+        fullAddress: this.createEventForm.address,
+        zipCode: this.createEventForm.zipCode.replace(/\D/g, ''),
+        latitude: '',
+        longitude: '',
+        category: 'EVENT'
+      }
+    };
+
+    this.eventsService.updateEvent(this.editingEventId, updateData).subscribe({
+      next: (updatedEvent) => {
+        this.isLoading = false;
+        this.showSuccess = true;
+        console.log('Event updated successfully:', updatedEvent);
+
+        // Redirect after success
+        setTimeout(() => {
+          this.router.navigate(['/my-events']);
+        }, 2000);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error updating event:', error);
+        
+        if (error.error?.message) {
+          this.errorMessage = error.error.message;
+        } else if (error.status === 404) {
+          this.errorMessage = 'Evento não encontrado.';
+        } else if (error.status === 403) {
+          this.errorMessage = 'Você não tem permissão para editar este evento.';
+        } else {
+          this.errorMessage = 'Erro ao atualizar evento. Tente novamente.';
+        }
+        
+        this.showError = true;
       }
     });
   }
