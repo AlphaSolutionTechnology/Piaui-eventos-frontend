@@ -10,10 +10,18 @@ import { environment } from '../../../enviroment';
 /**
  * Interceptor HTTP para:
  * 1. Garantir que as requisições incluam credenciais (cookies)
- * 2. Tratar erros de autenticação (401)
+ * 2. Tratar erros de autenticação (401/403) e tentar refresh automático
+ * 3. Redirecionar para login apenas quando refresh falhar
  *
  * IMPORTANTE: O backend usa cookies HttpOnly para autenticação (accessToken e refreshToken).
  * Os cookies são enviados automaticamente pelo navegador com withCredentials: true
+ * 
+ * FLUXO DE AUTENTICAÇÃO:
+ * - 401: Token expirado → Tenta refresh automático → Repete requisição
+ * - 403: Acesso negado → Tenta refresh automático → Repete requisição  
+ * - Se refresh falhar → Remove dados locais → Redireciona para /login
+ * - Endpoints públicos (eventos, register) → Propaga erro sem tentar refresh
+ * - /user/me → Propaga erro para que o guard trate (não bloqueia navegação)
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -37,9 +45,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         // ✅ NÃO redirecionar para endpoints públicos ou quando usuário não está autenticado
         if (isUserMeEndpoint && (error.status === 401 || error.status === 403)) {
           console.log(
-            '⚠️ [' + error.status + '] /user/me - usuário não autenticado, continuando sem dados'
+            '⚠️ [' + error.status + '] /user/me - usuário não autenticado, propagando erro'
           );
-          // Retornar erro sem redirecionar para não quebrar navegação
+          // Retornar erro sem redirecionar - o guard vai lidar com isso
           return throwError(() => error);
         }
 
@@ -56,31 +64,43 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           return throwError(() => error);
         }
 
-        // 🔄 Tentar refresh de token APENAS para endpoints que não sejam públicos, eventos ou refresh
+        // ✅ NÃO tentar refresh se for erro do próprio endpoint de refresh
+        if (isRefreshEndpoint) {
+          console.log('❌ [' + error.status + '] Erro no endpoint de refresh - propagando erro');
+          return throwError(() => error);
+        }
+
+        // 🔄 Tentar refresh de token para 401 (token expirado) e 403 (acesso negado)
+        // EXCETO para endpoints públicos, login, logout, refresh
         if (
-          error.status === 403 &&
+          (error.status === 401 || error.status === 403) &&
           !isLoginEndpoint &&
           !isLogoutEndpoint &&
           !isRefreshEndpoint &&
           !isEventsEndpoint &&
-          !isRegisterEndpoint
+          !isRegisterEndpoint &&
+          !isUserMeEndpoint
         ) {
-          console.log('🔄 [403] Tentando renovar token via /auth/refresh');
+          console.log('🔄 [' + error.status + '] Tentando renovar token via /auth/refresh');
 
           return http
-            .post<{ message: string; accessToken: string }>(
+            .post<{ message: string; accessToken?: string }>(
               `${environment.API_URL}/auth/refresh`,
               {},
               { withCredentials: true }
             )
             .pipe(
-              switchMap(() => {
+              switchMap((refreshResponse) => {
                 console.log('✅ Token renovado com sucesso, repetindo requisição original');
+                // Verificar se o backend retornou um novo accessToken (opcional)
+                if (refreshResponse && refreshResponse.accessToken) {
+                  console.log('✅ Novo accessToken recebido do backend');
+                }
                 const retryReq = req.clone({ withCredentials: true });
                 return next(retryReq);
               }),
               catchError((refreshError) => {
-                console.log('❌ Falha ao renovar token - redirecionando para login');
+                console.log('❌ Falha ao renovar token (status: ' + refreshError.status + ') - redirecionando para login');
                 localStorage.removeItem('user');
                 router.navigate(['/login']);
                 return throwError(() => refreshError);
@@ -88,27 +108,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             );
         }
 
-        if (
-          error.status === 401 &&
-          !isLoginEndpoint &&
-          !isLogoutEndpoint &&
-          !isEventsEndpoint &&
-          !isRegisterEndpoint
-        ) {
-          localStorage.removeItem('user');
-          console.log('🔒 [401] Sessão expirada - redirecionando para login');
-          router.navigate(['/login']);
-        } else if (error.status === 403 && isLogoutEndpoint) {
+        // Se chegou aqui e é logout com 403, não fazer nada (logout já foi tratado)
+        if (error.status === 403 && isLogoutEndpoint) {
           console.log('⚠️ [403] Logout - sessão já expirada');
-        } else if (
-          error.status === 403 &&
-          !isLoginEndpoint &&
-          !isEventsEndpoint &&
-          !isRegisterEndpoint
-        ) {
-          localStorage.removeItem('user');
-          console.log('🔒 [403] Acesso negado - redirecionando para login');
-          router.navigate(['/login']);
+          return throwError(() => error);
         }
       }
 

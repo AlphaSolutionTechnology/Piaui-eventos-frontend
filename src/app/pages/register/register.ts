@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { RegisterService } from '../../services/register-service';
+import { AuthService } from '../../services/auth';
 
 interface RegisterForm {
   firstName: string;
@@ -51,9 +52,20 @@ export class RegisterComponent implements OnInit, OnDestroy {
     receiveUpdates: true,
   };
 
-  constructor(private registerService: RegisterService, private router: Router) {}
+  constructor(
+    private registerService: RegisterService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
+    // Verificar se o usuário já está autenticado
+    if (this.authService.isAuthenticated()) {
+      console.log('✅ [REGISTER PAGE] Usuário já está autenticado - redirecionando para eventos');
+      this.router.navigate(['/events']);
+      return;
+    }
+    
     this.observeDarkMode();
   }
 

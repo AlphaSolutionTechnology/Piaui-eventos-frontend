@@ -48,6 +48,13 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Verificar se o usuário já está autenticado
+    if (this.authService.isAuthenticated()) {
+      console.log('✅ [LOGIN PAGE] Usuário já está autenticado - redirecionando para eventos');
+      this.router.navigate(['/events']);
+      return;
+    }
+
     if (this.isBrowser) {
       // Verificar o tema inicial
       const savedTheme = localStorage.getItem('theme');
