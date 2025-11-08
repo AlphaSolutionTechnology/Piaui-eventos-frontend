@@ -266,7 +266,7 @@ export class MyEventsPage implements OnInit, OnDestroy {
       next: () => {
         // Remove event from the list
         if (this.activeTab === 'created') {
-          this.createdEvents = this.createdEvents.filter(e => e.id !== eventId);
+          this.createdEvents = this.createdEvents.filter((e) => e.id !== eventId);
         }
         this.deleteLoading[eventId] = false;
         this.deleteSuccess[eventId] = true;
@@ -301,7 +301,7 @@ export class MyEventsPage implements OnInit, OnDestroy {
           delete this.deleteError[eventId];
           this.cdr.detectChanges();
         }, 5000);
-      }
+      },
     });
   }
 
@@ -346,40 +346,43 @@ export class MyEventsPage implements OnInit, OnDestroy {
     this.unsubscribeLoading[eventId] = true;
     this.cdr.detectChanges();
 
-    this.registrationService.unregisterUserFromEvent(eventId, this.user.id).then(() => {
-      // Remove event from registered events list
-      this.registeredEvents = this.registeredEvents.filter(e => e.id !== eventId);
-      this.unsubscribeLoading[eventId] = false;
-      this.unsubscribeSuccess[eventId] = true;
-      this.toastService.success('Inscrição cancelada com sucesso!');
-      this.cdr.detectChanges();
-
-      // Reset success state after 2 seconds
-      setTimeout(() => {
-        delete this.unsubscribeSuccess[eventId];
+    this.registrationService
+      .unregisterUserFromEvent(eventId, this.user.id)
+      .then(() => {
+        // Remove event from registered events list
+        this.registeredEvents = this.registeredEvents.filter((e) => e.id !== eventId);
+        this.unsubscribeLoading[eventId] = false;
+        this.unsubscribeSuccess[eventId] = true;
+        this.toastService.success('Inscrição cancelada com sucesso!');
         this.cdr.detectChanges();
-      }, 2000);
-    }).catch((error: any) => {
-      this.unsubscribeLoading[eventId] = false;
-      console.error('Error unsubscribing from event:', error);
 
-      let errorMsg = 'Erro ao cancelar inscrição. Tente novamente.';
-      if (error.status === 404) {
-        errorMsg = 'Evento não encontrado.';
-      } else if (error.status === 409) {
-        errorMsg = 'Não é possível cancelar a inscrição neste momento.';
-      }
+        // Reset success state after 2 seconds
+        setTimeout(() => {
+          delete this.unsubscribeSuccess[eventId];
+          this.cdr.detectChanges();
+        }, 2000);
+      })
+      .catch((error: any) => {
+        this.unsubscribeLoading[eventId] = false;
+        console.error('Error unsubscribing from event:', error);
 
-      this.unsubscribeError[eventId] = errorMsg;
-      this.toastService.error(errorMsg);
-      this.cdr.detectChanges();
+        let errorMsg = 'Erro ao cancelar inscrição. Tente novamente.';
+        if (error.status === 404) {
+          errorMsg = 'Evento não encontrado.';
+        } else if (error.status === 409) {
+          errorMsg = 'Não é possível cancelar a inscrição neste momento.';
+        }
 
-      // Reset error state after 5 seconds
-      setTimeout(() => {
-        delete this.unsubscribeError[eventId];
+        this.unsubscribeError[eventId] = errorMsg;
+        this.toastService.error(errorMsg);
         this.cdr.detectChanges();
-      }, 5000);
-    });
+
+        // Reset error state after 5 seconds
+        setTimeout(() => {
+          delete this.unsubscribeError[eventId];
+          this.cdr.detectChanges();
+        }, 5000);
+      });
   }
 
   /**

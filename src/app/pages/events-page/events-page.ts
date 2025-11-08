@@ -397,6 +397,11 @@ export class EventsPage implements OnInit, OnDestroy {
     this.isUserDropdownOpen = false;
   }
 
+  openSettings(): void {
+    this.closeUserDropdown();
+    this.router.navigate(['/settings']);
+  }
+
   logout(): void {
     this.closeUserDropdown();
     this.authService

@@ -565,7 +565,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
           isPublic: this.createEventForm.isPublic,
           allowWaitlist: this.createEventForm.allowWaitlist,
           status: 'published',
-          currentParticipants: 0
+          currentParticipants: 0,
         };
 
         // Create new event - need user ID
@@ -656,8 +656,8 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         zipCode: this.createEventForm.zipCode.replace(/\D/g, ''),
         latitude: '',
         longitude: '',
-        category: 'EVENT'
-      }
+        category: 'EVENT',
+      },
     };
 
     this.eventsService.updateEvent(this.editingEventId, updateData).subscribe({
@@ -686,7 +686,7 @@ export class CreateEventComponent implements OnInit, OnDestroy {
         }
 
         this.showError = true;
-      }
+      },
     });
   }
 
