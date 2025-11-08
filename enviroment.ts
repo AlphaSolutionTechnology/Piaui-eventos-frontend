@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  API_URL: 'http://pieventos.duckdns.org:8080/api' 
+  API_URL: 'https://refrigerative-hyacinth-penetrably.ngrok-free.dev/api' 
 };
