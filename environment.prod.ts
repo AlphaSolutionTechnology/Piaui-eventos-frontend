@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  API_URL: 'https://suaapi.com/api'  // exemplo produção
+  API_URL: 'http://localhost:8080/api' 
 };
