@@ -288,23 +288,10 @@
             <button (click)="viewEventDetails(event.id)" class="btn btn-primary">Visualizar</button>
             @if (activeTab === 'created') {
             <button (click)="editEvent(event.id)" class="btn btn-secondary">Editar</button>
-            <button
-              (click)="deleteEvent(event.id)"
-              class="btn btn-danger"
-              [disabled]="deleteLoading[event.id] || false"
-            >
-              @if (deleteLoading[event.id]) {
-              <span class="spinner"></span> Deletando... } @else { Deletar }
-            </button>
-            } @if (activeTab === 'registered') {
-            <button
-              (click)="cancelSubscription(event.id)"
-              class="btn btn-danger"
-              [disabled]="unsubscribeLoading[event.id] || false"
-            >
-              @if (unsubscribeLoading[event.id]) {
-              <span class="spinner"></span> Processando... } @else { Cancelar Inscrição }
-            </button>
+            <button (click)="deleteEvent(event.id)" class="btn btn-danger">Deletar</button>
+            }
+            @if (activeTab === 'registered') {
+            <button (click)="deleteEvent(event.id)" class="btn btn-danger">Cancelar Inscrição</button>
             }
           </div>
           @if (deleteError[event.id]) {

@@ -230,7 +230,8 @@ export class MyEventsPage implements OnInit, OnDestroy {
   }
 
   editEvent(eventId: number): void {
-    this.router.navigate(['/create-event', eventId]);
+    // Redirect to create-event page with event ID for editing
+    this.router.navigate(['/create-event'], { queryParams: { id: eventId } });
   }
 
   /**
@@ -238,88 +239,69 @@ export class MyEventsPage implements OnInit, OnDestroy {
    * @param eventId - ID do evento a deletar
    */
   deleteEvent(eventId: number): void {
+    // Show delete confirmation modal
     this.deleteConfirmation[eventId] = true;
     this.cdr.detectChanges();
   }
 
   /**
-   * Cancela a deleção do evento
+   * Cancela a operação de delete
    * @param eventId - ID do evento
    */
   cancelDelete(eventId: number): void {
     this.deleteConfirmation[eventId] = false;
-    this.deleteError[eventId] = null;
     this.cdr.detectChanges();
   }
 
   /**
-   * Confirma e executa a deleção do evento
-   * Endpoint: DELETE /api/events/{id}
-   * Remove o evento da lista imediatamente após sucesso
-   *
-   * @param eventId - ID do evento a deletar
+   * Confirma e executa o delete do evento
+   * @param eventId - ID do evento
    */
   confirmDelete(eventId: number): void {
-    if (!eventId) {
-      this.deleteError[eventId] = 'ID do evento inválido';
-      this.cdr.detectChanges();
-      return;
-    }
-
-    // Iniciar carregamento
+    this.deleteConfirmation[eventId] = false;
     this.deleteLoading[eventId] = true;
-    this.deleteError[eventId] = null;
-    this.deleteSuccess[eventId] = false;
     this.cdr.detectChanges();
-
-    console.log(`🟡 [MY-EVENTS] Deletando evento: eventId=${eventId}`);
 
     this.eventsService.deleteEvent(eventId).subscribe({
       next: () => {
-        console.log('✅ [MY-EVENTS] Evento deletado com sucesso');
-
-        // Remover evento da lista imediatamente
-        this.createdEvents = this.createdEvents.filter((e) => e.id !== eventId);
-
-        // Mostrar mensagem de sucesso
-        this.deleteSuccess[eventId] = true;
+        // Remove event from the list
+        if (this.activeTab === 'created') {
+          this.createdEvents = this.createdEvents.filter(e => e.id !== eventId);
+        }
         this.deleteLoading[eventId] = false;
-        this.deleteConfirmation[eventId] = false;
+        this.deleteSuccess[eventId] = true;
+        this.toastService.success('Evento deletado com sucesso!');
         this.cdr.detectChanges();
 
-        // Mostra toast de sucesso
-        this.toastService.success('Evento deletado com sucesso!');
-
-        // Limpar mensagem de sucesso após 3 segundos
+        // Reset success state after 2 seconds
         setTimeout(() => {
-          this.deleteSuccess[eventId] = false;
+          delete this.deleteSuccess[eventId];
           this.cdr.detectChanges();
-        }, 3000);
+        }, 2000);
       },
-      error: (error: any) => {
+      error: (error) => {
         this.deleteLoading[eventId] = false;
-        this.deleteConfirmation[eventId] = false;
+        console.error('Error deleting event:', error);
 
         let errorMsg = 'Erro ao deletar evento. Tente novamente.';
-
-        if (error?.error?.message) {
-          errorMsg = error.error.message;
-        } else if (error?.status === 404) {
+        if (error.status === 404) {
           errorMsg = 'Evento não encontrado.';
-        } else if (error?.status === 401 || error?.status === 403) {
+        } else if (error.status === 403) {
           errorMsg = 'Você não tem permissão para deletar este evento.';
-        } else if (error?.status === 409) {
-          errorMsg = 'Conflito ao deletar evento. Tente novamente.';
-        } else if (error?.status === 500) {
-          errorMsg = 'Erro no servidor. Tente novamente mais tarde.';
+        } else if (error.status === 409) {
+          errorMsg = 'Não é possível deletar um evento com participantes inscritos.';
         }
 
         this.deleteError[eventId] = errorMsg;
-        console.error(`❌ [MY-EVENTS] Erro ao deletar evento: ${errorMsg}`, error);
-
-        this.cdr.detectChanges();
         this.toastService.error(errorMsg);
-      },
+        this.cdr.detectChanges();
+
+        // Reset error state after 5 seconds
+        setTimeout(() => {
+          delete this.deleteError[eventId];
+          this.cdr.detectChanges();
+        }, 5000);
+      }
     });
   }
 
@@ -333,20 +315,16 @@ export class MyEventsPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Cancela a ação de unsubscribe
+   * Cancela a operação de unsubscribe
    * @param eventId - ID do evento
    */
   cancelUnsubscribe(eventId: number): void {
     this.unsubscribeConfirmation[eventId] = false;
-    this.unsubscribeError[eventId] = null;
     this.cdr.detectChanges();
   }
 
   /**
-   * Cancela a inscrição do usuário em um evento
-   * Endpoint: DELETE /api/events/{eventId}/register/{userId}
-   * Remove o evento da lista imediatamente após sucesso
-   *
+   * Confirma e executa o unsubscribe do evento
    * @param eventId - ID do evento
    */
   confirmUnsubscribe(eventId: number): void {
@@ -355,79 +333,70 @@ export class MyEventsPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Executa a desinscrição do usuário
+   * Executa o unsubscribe do evento
+   * @private
+   * @param eventId - ID do evento
    */
-  private async performUnsubscribe(eventId: number): Promise<void> {
+  private performUnsubscribe(eventId: number): void {
     if (!this.user || this.user.id === 0) {
-      this.unsubscribeError[eventId] = 'Erro: Usuário não encontrado';
-      this.cdr.detectChanges();
-      this.toastService.error('Usuário não encontrado');
-      console.error('❌ Usuário não carregado');
+      this.toastService.error('Usuário não identificado.');
       return;
     }
 
-    // Iniciar carregamento
     this.unsubscribeLoading[eventId] = true;
-    this.unsubscribeError[eventId] = null;
-    this.unsubscribeSuccess[eventId] = false;
     this.cdr.detectChanges();
 
-    try {
-      console.log(
-        `🟡 [MY-EVENTS] Cancelando inscrição: eventId=${eventId}, userId=${this.user.id}`
-      );
-
-      // Chamar o serviço para desinscrever
-      await this.registrationService.unregisterUserFromEvent(eventId, this.user.id);
-
-      console.log('✅ [MY-EVENTS] Desinscrição bem-sucedida');
-
-      // Remover evento da lista imediatamente
-      this.registeredEvents = this.registeredEvents.filter((e) => e.id !== eventId);
-
-      // Mostrar mensagem de sucesso por 3 segundos
-      this.unsubscribeSuccess[eventId] = true;
+    this.registrationService.unregisterUserFromEvent(eventId, this.user.id).then(() => {
+      // Remove event from registered events list
+      this.registeredEvents = this.registeredEvents.filter(e => e.id !== eventId);
       this.unsubscribeLoading[eventId] = false;
+      this.unsubscribeSuccess[eventId] = true;
+      this.toastService.success('Inscrição cancelada com sucesso!');
       this.cdr.detectChanges();
 
-      // Mostra toast de sucesso
-      this.toastService.success('Inscrição cancelada com sucesso!');
-
-      // Limpar mensagem de sucesso após 3 segundos
+      // Reset success state after 2 seconds
       setTimeout(() => {
-        this.unsubscribeSuccess[eventId] = false;
+        delete this.unsubscribeSuccess[eventId];
         this.cdr.detectChanges();
-      }, 3000);
-    } catch (error: any) {
-      // Erro no cancelamento
+      }, 2000);
+    }).catch((error: any) => {
       this.unsubscribeLoading[eventId] = false;
-      const errorMsg = error?.message || 'Erro ao cancelar inscrição. Tente novamente.';
-      this.unsubscribeError[eventId] = errorMsg;
+      console.error('Error unsubscribing from event:', error);
 
-      console.error(`❌ [MY-EVENTS] Erro ao desinscrever: ${errorMsg}`);
+      let errorMsg = 'Erro ao cancelar inscrição. Tente novamente.';
+      if (error.status === 404) {
+        errorMsg = 'Evento não encontrado.';
+      } else if (error.status === 409) {
+        errorMsg = 'Não é possível cancelar a inscrição neste momento.';
+      }
+
+      this.unsubscribeError[eventId] = errorMsg;
       this.toastService.error(errorMsg);
       this.cdr.detectChanges();
-    }
+
+      // Reset error state after 5 seconds
+      setTimeout(() => {
+        delete this.unsubscribeError[eventId];
+        this.cdr.detectChanges();
+      }, 5000);
+    });
   }
 
   /**
+   * Abre o modal de confirmação para cancelar inscrição
    * @deprecated Use cancelSubscription() instead
-   * Cancela a inscrição do usuário em um evento
-   * Endpoint: DELETE /api/events/{eventId}/register/{userId}
-   * Remove o evento da lista imediatamente após sucesso
-   *
-   * @param eventId - ID do evento
    */
-  async cancelEventSubscription(eventId: number): Promise<void> {
-    // Confirmação antes de cancelar
-    const confirmed = window.confirm('Tem certeza que deseja cancelar sua inscrição neste evento?');
-
-    if (!confirmed) {
-      console.log('❌ Cancelamento de inscrição abortado pelo usuário');
+  cancelRegistration(eventId: number): void {
+    if (!confirm('Tem certeza que deseja cancelar sua inscrição neste evento?')) {
       return;
     }
 
-    await this.performUnsubscribe(eventId);
+    if (!this.user || this.user.id === 0) {
+      this.toastService.error('Usuário não identificado.');
+      return;
+    }
+
+    this.performUnsubscribe(eventId);
   }
 
   /**
